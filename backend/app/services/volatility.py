@@ -328,7 +328,7 @@ class VolatilityAnalyzer:
             'volatility_skew': vol_skew,
             'volatility_persistence': persistence,
             'jump_intensity': jump_intensity,
-            'realized_volatility': returns_clean.std() * np.sqrt(252),
+            'current_realized_volatility': returns_clean.std() * np.sqrt(252),
             'min_volatility': returns_clean.rolling(window).std().min() * np.sqrt(252),
             'max_volatility': returns_clean.rolling(window).std().max() * np.sqrt(252)
         }

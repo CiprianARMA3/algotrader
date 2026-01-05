@@ -155,12 +155,12 @@ async def perform_volatility_analysis(returns_data: Dict) -> List[Dict]:
             vol_metrics = volatility_analyzer.calculate_volatility_surface_metrics(returns)
             
             volatility_results.append({
+                **vol_metrics,
                 'symbol': symbol,
                 'garch_volatility': garch_result.get('conditional_volatility', []),
                 'realized_volatility': realized_vol.dropna().tolist(),
                 'leverage_effect': garch_result.get('leverage_effect', 0),
                 'vol_of_vol': garch_result.get('volatility_of_vol', 0),
-                **vol_metrics
             })
         except Exception as e:
             logger.error(f"Volatility analysis error for {symbol}: {str(e)}")
