@@ -5,6 +5,7 @@ import MetricsDisplay from './MetricsDisplay';
 import dynamic from 'next/dynamic';
 
 const Charts = dynamic(() => import('./Charts'), { ssr: false });
+const TradingViewChart = dynamic(() => import('./TradingViewChart'), { ssr: false });
 
 interface DashboardProps {
   data: AnalysisResponse;
@@ -23,6 +24,11 @@ export default function Dashboard({ data }: DashboardProps) {
 
   return (
     <div className="space-y-12">
+      {/* 00. Live Terminal - TradingView */}
+      {instruments.length > 0 && (
+        <TradingViewChart symbol={instruments[0]} />
+      )}
+
       {/* Summary Matrix */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-t border-l border-gray-800">
         <div className="p-6 border-r border-b border-gray-800 group hover:bg-white hover:text-black transition-all">
