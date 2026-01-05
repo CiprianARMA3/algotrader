@@ -121,13 +121,13 @@ async def perform_cointegration_analysis(price_data: Dict) -> List[Dict]:
     
     return cointegration_results
 
-async def perform_pca_analysis(returns_data: Dict) -> Dict:
+async def perform_pca_analysis(returns_data: Dict) -> Optional[Dict]:
     """Perform PCA analysis on returns"""
     # Create returns matrix
     returns_df = pd.DataFrame(returns_data).dropna()
     
-    if len(returns_df) < 10 or len(returns_df.columns) < 5:
-        return {}
+    if len(returns_df) < 10 or len(returns_df.columns) < 2:  # Reduced min columns for more results
+        return None
     
     pca_result = econometrics.perform_pca_analysis(
         returns_df,
