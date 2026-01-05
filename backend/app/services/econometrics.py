@@ -76,34 +76,67 @@ class EconometricAnalyzer:
         """
         Perform Johansen cointegration test for multiple time series
         """
-        # Drop NaN values
-        data_clean = data.dropna()
+        try:
+            data_clean = data.dropna()
+            if data_clean.shape[1] < 2:
+                return {}
+                
+            result = coint_johansen(data_clean, det_order=0, k_ar_diff=k_ar_diff)
+            
+            return {
+                'trace_stats': result.lr1.tolist(),
+                'trace_crit': result.cvt.tolist(),
+                'max_eig_stats': result.lr2.tolist(),
+                'max_eig_crit': result.cvm.tolist(),
+                'eigenvalues': result.eig.tolist()
+            }
+        except Exception as e:
+            logger.error(f"Johansen test error: {str(e)}")
+            return {}
+
+    def calculate_copula_dependence(self, series1: pd.Series, series2: pd.Series) -> Dict:
+        """
+        Captures non-linear tail dependence using empirical copulas
+        """
+        aligned = pd.concat([series1, series2], axis=1).dropna()
+        u = stats.rankdata(aligned.iloc[:, 0]) / (len(aligned) + 1)
+        v = stats.rankdata(aligned.iloc[:, 1]) / (len(aligned) + 1)
         
-        # Perform Johansen test
-        result = coint_johansen(data_clean, det_order=0, k_ar_diff=k_ar_diff)
-        
-        # Trace test statistics
-        trace_stats = result.lr1
-        trace_crit_values = result.cvt
-        trace_significant = result.lr1 > result.cvt[:, 1]  # 95% critical value
-        
-        # Max eigenvalue test statistics
-        max_eigen_stats = result.lr2
-        max_eigen_crit_values = result.cvm
-        max_eigen_significant = result.lr2 > result.cvm[:, 1]
-        
-        # Cointegrating vectors
-        eigenvectors = result.evec
+        # Tail dependence (Lower and Upper)
+        threshold = 0.1
+        lower_tail = np.mean((u < threshold) & (v < threshold)) / threshold
+        upper_tail = np.mean((u > 1 - threshold) & (v > 1 - threshold)) / threshold
         
         return {
-            'trace_statistics': trace_stats.tolist(),
-            'trace_critical_values': trace_crit_values.tolist(),
-            'trace_significant': trace_significant.tolist(),
-            'max_eigen_statistics': max_eigen_stats.tolist(),
-            'max_eigen_critical_values': max_eigen_crit_values.tolist(),
-            'max_eigen_significant': max_eigen_significant.tolist(),
-            'cointegrating_vectors': eigenvectors.tolist(),
-            'num_cointegrating_relations': np.sum(trace_significant)
+            'kendall_tau': float(stats.kendalltau(aligned.iloc[:, 0], aligned.iloc[:, 1])[0]),
+            'lower_tail_dependence': float(lower_tail),
+            'upper_tail_dependence': float(upper_tail)
+        }
+
+    def estimate_ou_process(self, spread: pd.Series) -> Dict:
+        """
+        Estimates Ornstein-Uhlenbeck parameters (Mean Reversion Speed)
+        dX_t = kappa(mu - X_t)dt + sigma*dW_t
+        """
+        y = spread.values
+        x = spread.shift(1).fillna(method='bfill').values
+        
+        # Discrete time regression: y_t = a + b*x_{t-1} + e
+        # kappa = -ln(b)/delta_t
+        res = stats.linregress(x, y)
+        b = res.slope
+        a = res.intercept
+        
+        dt = 1/252 # Daily data
+        kappa = -np.log(max(b, 1e-9)) / dt
+        mu = a / (1 - b)
+        sigma = np.std(y - (a + b*x)) / np.sqrt(dt)
+        
+        return {
+            'kappa_reversion_speed': float(kappa),
+            'equilibrium_mu': float(mu),
+            'volatility_sigma': float(sigma),
+            'half_life': float(np.log(2) / kappa) if kappa > 0 else None
         }
     
     def perform_pca_analysis(

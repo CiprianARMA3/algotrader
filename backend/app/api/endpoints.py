@@ -17,6 +17,8 @@ from app.services.econometrics import EconometricAnalyzer
 from app.services.signal_processing import SignalProcessor
 from app.services.volatility import VolatilityAnalyzer
 from app.services.machine_learning import MachineLearningAnalyzer
+from app.services.microstructure import MicrostructureAnalyzer
+from app.services.information_theory import InformationAnalyzer
 from app.core.config import settings
 
 router = APIRouter()
@@ -28,6 +30,8 @@ econometrics = EconometricAnalyzer()
 signal_processor = SignalProcessor()
 volatility_analyzer = VolatilityAnalyzer()
 ml_analyzer = MachineLearningAnalyzer()
+micro_analyzer = MicrostructureAnalyzer()
+info_analyzer = InformationAnalyzer()
 
 def convert_numpy(obj):
     if isinstance(obj, np.integer):
@@ -107,8 +111,19 @@ async def analyze_market(
         if 'microstructure' in request.analysis_types or 'full' in request.analysis_types:
             results['microstructure'] = await perform_microstructure_analysis(data)
         
+        # Lead-Lag Analysis (Transfer Entropy)
+        symbols = list(returns_data.keys())
+        lead_lag_data = {}
+        if len(symbols) >= 2:
+            te = info_analyzer.calculate_transfer_entropy(returns_data[symbols[0]], returns_data[symbols[1]])
+            lead_lag_data = {
+                'lead_lag_score': te,
+                'dominant_instrument': symbols[0] if te > 0.1 else symbols[1]
+            }
+        
         # Generate execution recommendations
-        results['execution_recommendations'] = generate_execution_recommendations(results)
+        exec_recs = generate_execution_recommendations(results)
+        results['execution_recommendations'] = {**lead_lag_data, **exec_recs}
         
         # Convert all numpy types to native python types for serialization
         clean_results = convert_numpy(results)
@@ -133,10 +148,22 @@ async def perform_cointegration_analysis(price_data: Dict) -> List[Dict]:
                     price_data[symbols[j]]
                 )
                 
-                if result['cointegrated']:
+                if result.get('cointegrated'):
+                    # Estimate OU Process for Mean Reversion Speed
+                    spread = price_data[symbols[j]] - result['hedge_ratio'] * price_data[symbols[i]]
+                    ou_params = econometrics.estimate_ou_process(spread)
+                    
+                    # Copula tail dependence
+                    copula_results = econometrics.calculate_copula_dependence(
+                        price_data[symbols[i]].pct_change().dropna(),
+                        price_data[symbols[j]].pct_change().dropna()
+                    )
+                    
                     cointegration_results.append({
                         'pair': [symbols[i], symbols[j]],
-                        **result
+                        **result,
+                        **ou_params,
+                        **copula_results
                     })
             except Exception as e:
                 logger.error(f"Cointegration error for {symbols[i]}-{symbols[j]}: {str(e)}")
@@ -149,7 +176,7 @@ async def perform_pca_analysis(returns_data: Dict) -> Optional[Dict]:
     # Create returns matrix
     returns_df = pd.DataFrame(returns_data).dropna()
     
-    if len(returns_df) < 10 or len(returns_df.columns) < 2:  # Reduced min columns for more results
+    if len(returns_df) < 10 or len(returns_df.columns) < 2:
         return None
     
     pca_result = econometrics.perform_pca_analysis(
@@ -271,19 +298,25 @@ async def perform_microstructure_analysis(data: Dict) -> List[Dict]:
             if 'Volume' not in df.columns or 'Close' not in df.columns:
                 continue
             
-            # Calculate Amihud illiquidity ratio
-            returns = df['Returns'].abs() if 'Returns' in df.columns else df['Close'].pct_change().abs()
+            # Calculate VPIN (Volume-Synchronized Probability of Informed Trading)
+            vpin = micro_analyzer.calculate_vpin(df)
+            
+            # Calculate Kyle's Lambda (Market Depth / Impact)
+            returns = df['Returns'] if 'Returns' in df.columns else df['Close'].pct_change()
+            k_lambda = micro_analyzer.calculate_kyles_lambda(returns, df['Volume'])
+            
+            # Amihud illiquidity ratio
             dollar_volume = df['Volume'] * df['Close']
-            amihud_ratio = (returns / dollar_volume).mean()
+            amihud_ratio = micro_analyzer.calculate_amihud_illiquidity(returns, dollar_volume)
             
             # Calculate volatility metrics
-            volatility_metrics = volatility_analyzer.calculate_volatility_surface_metrics(
-                df['Close'].pct_change() if 'Returns' not in df.columns else df['Returns']
-            )
+            volatility_metrics = volatility_analyzer.calculate_volatility_surface_metrics(returns)
             
             microstructure_results.append({
                 'symbol': symbol,
-                'amihud_illiquidity': float(amihud_ratio) if not pd.isna(amihud_ratio) else 0,
+                'vpin_toxicity': vpin,
+                'kyles_lambda': k_lambda,
+                'amihud_illiquidity': amihud_ratio,
                 'volume_profile': {
                     'mean_volume': float(df['Volume'].mean()),
                     'volume_std': float(df['Volume'].std()),
@@ -314,7 +347,6 @@ def generate_execution_recommendations(results: Dict) -> Dict:
         regime_counts = {}
         for regime_result in results['regimes']:
             if 'hidden_states' in regime_result:
-                # Find most common regime
                 if regime_result['hidden_states']:
                     most_common = max(set(regime_result['hidden_states']), 
                                      key=regime_result['hidden_states'].count)
@@ -326,8 +358,8 @@ def generate_execution_recommendations(results: Dict) -> Dict:
     
     # Analyze volatility
     if results.get('volatility'):
-        avg_vol = np.mean([v.get('realized_volatility', 0) for v in results['volatility'] 
-                          if isinstance(v.get('realized_volatility'), (int, float))])
+        avg_vol = np.mean([v.get('current_realized_volatility', 0) for v in results['volatility'] 
+                          if isinstance(v.get('current_realized_volatility'), (int, float))])
         
         if avg_vol > 0.3:
             recommendations['volatility_environment'] = 'high'
@@ -346,9 +378,6 @@ def generate_execution_recommendations(results: Dict) -> Dict:
                         if t.get('trend_strength', 0) > 0.7]
         if strong_trends:
             recommendations['recommended_strategies'].append('trend_following')
-    
-    if results.get('regimes'):
-        recommendations['recommended_strategies'].append('regime_switching')
     
     return recommendations
 
