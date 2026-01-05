@@ -101,7 +101,7 @@ class VolatilityAnalyzer:
                     o=q,  # asymmetric terms
                     q=q,
                     dist=distribution,
-                    power=1.0
+                    power=2.0
                 )
             elif model_type.upper() == 'EGARCH':
                 model = arch_model(

@@ -33,15 +33,20 @@ def convert_numpy(obj):
     if isinstance(obj, np.integer):
         return int(obj)
     if isinstance(obj, np.floating):
+        if np.isnan(obj) or np.isinf(obj):
+            return None
         return float(obj)
     if isinstance(obj, np.bool_):
         return bool(obj)
     if isinstance(obj, np.ndarray):
-        return obj.tolist()
+        return [convert_numpy(i) for i in obj.tolist()]
     if isinstance(obj, dict):
         return {k: convert_numpy(v) for k, v in obj.items()}
     if isinstance(obj, list):
         return [convert_numpy(i) for i in obj]
+    if isinstance(obj, float):
+        if np.isnan(obj) or np.isinf(obj):
+            return None
     return obj
 
 @router.post("/analyze", response_model=AnalysisResponse)

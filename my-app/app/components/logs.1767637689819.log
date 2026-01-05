@@ -1,0 +1,106 @@
+2026-01-05T18:26:59.000000000Z [inf]  Starting Container
+2026-01-05T18:27:04.913029077Z [err]  INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+2026-01-05T18:27:04.913129111Z [err]  INFO:     Started server process [1]
+2026-01-05T18:27:04.913140315Z [err]  INFO:     Waiting for application startup.
+2026-01-05T18:27:04.913149222Z [err]  INFO:     Application startup complete.
+2026-01-05T18:27:35.530459219Z [err]  2026-01-05 18:27:34,327 - app.api.endpoints - INFO - Starting analysis for 5 instruments
+2026-01-05T18:27:35.530465007Z [err]  2026-01-05 18:27:34,327 - app.services.data_fetcher - INFO - Fetching data for AAPL from 2025-01-05 to 2026-01-05
+2026-01-05T18:27:38.332422547Z [err]  2026-01-05 18:27:37,816 - app.services.data_fetcher - INFO - Fetching data for MSFT from 2025-01-05 to 2026-01-05
+2026-01-05T18:27:39.105095769Z [err]  2026-01-05 18:27:38,597 - app.services.data_fetcher - INFO - Fetching data for GOOGL from 2025-01-05 to 2026-01-05
+2026-01-05T18:27:40.155007708Z [err]  2026-01-05 18:27:39,380 - app.services.data_fetcher - INFO - Fetching data for EURUSD=X from 2025-01-05 to 2026-01-05
+2026-01-05T18:27:40.155013218Z [err]  2026-01-05 18:27:40,105 - app.services.data_fetcher - INFO - Fetching data for GBPUSD=X from 2025-01-05 to 2026-01-05
+2026-01-05T18:27:42.253195166Z [err]  2026-01-05 18:27:41,631 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:27:42.253209068Z [err]  2026-01-05 18:27:41,661 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:27:42.253216406Z [err]  2026-01-05 18:27:41,689 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:27:42.253226072Z [err]  2026-01-05 18:27:41,713 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:27:42.253247163Z [err]  2026-01-05 18:27:41,530 - app.api.endpoints - ERROR - Cointegration error for MSFT-EURUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:27:42.253261313Z [err]  2026-01-05 18:27:41,532 - app.api.endpoints - ERROR - Cointegration error for MSFT-GBPUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:27:42.253270872Z [err]  2026-01-05 18:27:41,534 - app.api.endpoints - ERROR - Cointegration error for GOOGL-EURUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:27:42.253282744Z [err]  2026-01-05 18:27:41,537 - app.api.endpoints - ERROR - Cointegration error for GOOGL-GBPUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:27:42.253288555Z [err]  2026-01-05 18:27:41,479 - app.api.endpoints - ERROR - Cointegration error for AAPL-EURUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:27:42.253295821Z [err]  2026-01-05 18:27:41,603 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:27:42.253298816Z [err]  2026-01-05 18:27:41,481 - app.api.endpoints - ERROR - Cointegration error for AAPL-GBPUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:27:42.253604180Z [err]  2026-01-05 18:27:41,716 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:27:42.253609173Z [err]  2026-01-05 18:27:41,717 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:27:42.253614062Z [err]  2026-01-05 18:27:41,718 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:27:42.253618748Z [err]  2026-01-05 18:27:41,719 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:27:42.253623263Z [err]  2026-01-05 18:27:41,720 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:27:42.300368974Z [err]  2026-01-05 18:27:42,298 - app.api.endpoints - ERROR - Trending analysis error for AAPL: shapes (1,1) and (248,) not aligned: 1 (dim 1) != 248 (dim 0)
+2026-01-05T18:27:43.162205423Z [err]  2026-01-05 18:27:42,827 - app.api.endpoints - ERROR - Trending analysis error for MSFT: shapes (1,1) and (248,) not aligned: 1 (dim 1) != 248 (dim 0)
+2026-01-05T18:27:43.338294683Z [err]  2026-01-05 18:27:43,335 - app.api.endpoints - ERROR - Trending analysis error for GOOGL: shapes (1,1) and (248,) not aligned: 1 (dim 1) != 248 (dim 0)
+2026-01-05T18:27:44.500551268Z [err]  2026-01-05 18:27:43,902 - app.api.endpoints - ERROR - Trending analysis error for EURUSD=X: shapes (1,1) and (255,) not aligned: 1 (dim 1) != 255 (dim 0)
+2026-01-05T18:27:45.470156090Z [err]      await self.middleware_stack(scope, receive, send)
+2026-01-05T18:27:45.470169424Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 186, in __call__
+2026-01-05T18:27:45.470330134Z [inf]  INFO:     100.64.0.2:44936 - "POST /api/v1/analyze HTTP/1.1" 500 Internal Server Error
+2026-01-05T18:27:45.470342437Z [err]  ERROR:    Exception in ASGI application
+2026-01-05T18:27:45.470350046Z [err]  Traceback (most recent call last):
+2026-01-05T18:27:45.470356726Z [err]    File "/app/.venv/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+2026-01-05T18:27:45.470362561Z [err]      result = await app(  # type: ignore[func-returns-value]
+2026-01-05T18:27:45.470369895Z [err]               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:27:45.470376192Z [err]          self.scope, self.receive, self.send
+2026-01-05T18:27:45.470382385Z [err]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:27:45.470389681Z [err]      )
+2026-01-05T18:27:45.470396173Z [err]      ^
+2026-01-05T18:27:45.470402293Z [err]    File "/app/.venv/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+2026-01-05T18:27:45.470408200Z [err]      return await self.app(scope, receive, send)
+2026-01-05T18:27:45.470414324Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:27:45.470418709Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/applications.py", line 1135, in __call__
+2026-01-05T18:27:45.470423532Z [err]      await super().__call__(scope, receive, send)
+2026-01-05T18:27:45.470428277Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/applications.py", line 107, in __call__
+2026-01-05T18:27:45.470743183Z [err]  2026-01-05 18:27:44,544 - app.api.endpoints - ERROR - Trending analysis error for GBPUSD=X: shapes (1,1) and (255,) not aligned: 1 (dim 1) != 255 (dim 0)
+2026-01-05T18:27:45.476014129Z [err]      raise exc
+2026-01-05T18:27:45.476020972Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+2026-01-05T18:27:45.476028174Z [err]      await self.app(scope, receive, _send)
+2026-01-05T18:27:45.476035347Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/cors.py", line 93, in __call__
+2026-01-05T18:27:45.476042121Z [err]      await self.simple_response(scope, receive, send, request_headers=headers)
+2026-01-05T18:27:45.476047962Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+2026-01-05T18:27:45.476054045Z [err]      await self.app(scope, receive, send)
+2026-01-05T18:27:45.476059249Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+2026-01-05T18:27:45.476065585Z [err]      await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+2026-01-05T18:27:45.476072574Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+2026-01-05T18:27:45.476080331Z [err]      raise exc
+2026-01-05T18:27:45.476087121Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+2026-01-05T18:27:45.476094436Z [err]      await app(scope, receive, sender)
+2026-01-05T18:27:45.476100830Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+2026-01-05T18:27:45.476107602Z [err]      await self.app(scope, receive, send)
+2026-01-05T18:27:45.476113965Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/routing.py", line 716, in __call__
+2026-01-05T18:27:45.476122014Z [err]      await self.middleware_stack(scope, receive, send)
+2026-01-05T18:27:45.476130064Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/routing.py", line 736, in app
+2026-01-05T18:27:45.479381328Z [err]      response = actual_response_class(content, **response_args)
+2026-01-05T18:27:45.479384190Z [err]      await route.handle(scope, receive, send)
+2026-01-05T18:27:45.479398782Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/routing.py", line 290, in handle
+2026-01-05T18:27:45.479398959Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/responses.py", line 189, in __init__
+2026-01-05T18:27:45.479410168Z [err]      await self.app(scope, receive, send)
+2026-01-05T18:27:45.479413248Z [err]      super().__init__(content, status_code, headers, media_type, background)
+2026-01-05T18:27:45.479420278Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 115, in app
+2026-01-05T18:27:45.479422724Z [err]      ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:27:45.479430436Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/responses.py", line 46, in __init__
+2026-01-05T18:27:45.479437894Z [err]      self.body = self.render(content)
+2026-01-05T18:27:45.479472088Z [err]      await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+2026-01-05T18:27:45.479479892Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+2026-01-05T18:27:45.479486936Z [err]      raise exc
+2026-01-05T18:27:45.479507267Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+2026-01-05T18:27:45.479514466Z [err]      await app(scope, receive, sender)
+2026-01-05T18:27:45.479521892Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 101, in app
+2026-01-05T18:27:45.479528266Z [err]      response = await f(request)
+2026-01-05T18:27:45.479548120Z [err]                 ^^^^^^^^^^^^^^^^
+2026-01-05T18:27:45.479555079Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 389, in app
+2026-01-05T18:27:45.486839754Z [err]                  ~~~~~~~~~~~^^^^^^^^^
+2026-01-05T18:27:45.486852321Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/responses.py", line 192, in render
+2026-01-05T18:27:45.486859555Z [err]      return json.dumps(
+2026-01-05T18:27:45.486867566Z [err]             ~~~~~~~~~~^
+2026-01-05T18:27:45.486874736Z [err]          content,
+2026-01-05T18:27:45.486883118Z [err]          ^^^^^^^^
+2026-01-05T18:27:45.486889628Z [err]      ...<3 lines>...
+2026-01-05T18:27:45.486895783Z [err]          separators=(",", ":"),
+2026-01-05T18:27:45.486902789Z [err]          ^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:27:45.486910000Z [err]      ).encode("utf-8")
+2026-01-05T18:27:45.486916558Z [err]      ^
+2026-01-05T18:27:45.486922686Z [err]    File "/mise/installs/python/3.13.11/lib/python3.13/json/__init__.py", line 242, in dumps
+2026-01-05T18:27:45.486931405Z [err]      **kw).encode(obj)
+2026-01-05T18:27:45.486937857Z [err]            ~~~~~~^^^^^
+2026-01-05T18:27:45.486944716Z [err]    File "/mise/installs/python/3.13.11/lib/python3.13/json/encoder.py", line 202, in encode
+2026-01-05T18:27:45.486950832Z [err]      chunks = self.iterencode(o, _one_shot=True)
+2026-01-05T18:27:45.486957114Z [err]    File "/mise/installs/python/3.13.11/lib/python3.13/json/encoder.py", line 263, in iterencode
+2026-01-05T18:27:45.486963601Z [err]      return _iterencode(o, 0)
+2026-01-05T18:27:45.486969829Z [err]  ValueError: Out of range float values are not JSON compliant: inf
