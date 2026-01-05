@@ -14,224 +14,122 @@ export default function MetricsDisplay({
   microstructureData 
 }: MetricsDisplayProps) {
   return (
-    <div className="space-y-6">
-      {/* Volatility Metrics */}
+    <div className="space-y-20 pb-20">
+      {/* 01. Volatility Matrix */}
       {volatilityData && volatilityData.length > 0 && (
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-          <h3 className="text-xl font-bold mb-4">Volatility Metrics</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {volatilityData.slice(0, 8).map((vol, idx) => {
+        <section>
+          <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-600 mb-8 flex items-center gap-4">
+            <span className="w-12 h-[1px] bg-gray-800"></span>
+            01_VOLATILITY_VECTORS
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-t border-l border-gray-900">
+            {volatilityData.map((vol, idx) => {
               const currentVol = Array.isArray(vol.realized_volatility) 
                 ? vol.realized_volatility.slice(-1)[0] 
                 : 0;
               
               return (
-              <div key={idx} className="bg-gray-900/50 p-4 rounded-lg">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="font-semibold text-blue-300">{vol.symbol}</span>
-                  <span className={`text-sm px-2 py-1 rounded ${
-                    currentVol > 0.3 
-                      ? 'bg-red-900/50 text-red-300' 
-                      : currentVol < 0.15
-                      ? 'bg-green-900/50 text-green-300'
-                      : 'bg-yellow-900/50 text-yellow-300'
-                  }`}>
-                    {(currentVol * 100).toFixed(1)}%
-                  </span>
+                <div key={idx} className="p-6 border-r border-b border-gray-900 hover:bg-white hover:text-black transition-all">
+                  <div className="flex justify-between items-baseline mb-6">
+                    <span className="text-xl font-black uppercase">{vol.symbol}</span>
+                    <span className="text-xs font-mono">{(currentVol * 100).toFixed(2)}%</span>
+                  </div>
+                  <div className="space-y-3 text-[10px] uppercase font-bold tracking-widest opacity-60">
+                    <div className="flex justify-between">
+                      <span>Term_Structure</span>
+                      <span>{vol.term_structure?.toFixed(3) || '0.000'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Skew_Asym</span>
+                      <span>{vol.volatility_skew?.toFixed(3) || '0.000'}</span>
+                    </div>
+                    <div className="flex justify-between border-t border-gray-800 pt-2 mt-2">
+                      <span>Jump_Intensity</span>
+                      <span>{vol.jump_intensity?.toFixed(4) || '0.000'}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="space-y-1 text-sm text-gray-400">
-                  <div className="flex justify-between">
-                    <span>Short Term:</span>
-                    <span>{(vol.short_term_vol * 100).toFixed(1)}%</span>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* 02. Microstructure & Toxicity */}
+      {microstructureData && microstructureData.length > 0 && (
+        <section>
+          <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-600 mb-8 flex items-center gap-4">
+            <span className="w-12 h-[1px] bg-gray-800"></span>
+            02_MICROSTRUCTURE_ANOMALIES
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border-t border-l border-gray-900">
+            {microstructureData.map((micro, idx) => (
+              <div key={idx} className="p-8 border-r border-b border-gray-900 flex justify-between">
+                <div>
+                  <h4 className="text-2xl font-black uppercase mb-2">{micro.symbol}</h4>
+                  <p className="text-[10px] text-gray-500 uppercase tracking-widest">Adverse_Selection_Score</p>
+                </div>
+                <div className="text-right space-y-4">
+                  <div>
+                    <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">VPIN_Toxicity</div>
+                    <div className="text-xl font-black">{(micro.vpin_toxicity || 0).toFixed(4)}</div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Long Term:</span>
-                    <span>{(vol.long_term_vol * 100).toFixed(1)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Skew:</span>
-                    <span className={vol.volatility_skew > 0 ? 'text-green-400' : 'text-red-400'}>
-                      {vol.volatility_skew.toFixed(3)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Leverage Effect:</span>
-                    <span className={vol.leverage_effect < 0 ? 'text-green-400' : 'text-red-400'}>
-                      {vol.leverage_effect.toFixed(3)}
-                    </span>
+                  <div>
+                    <div className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Kyle_Lambda</div>
+                    <div className="text-xs font-mono">{(micro.kyles_lambda || 0).toExponential(2)}</div>
                   </div>
                 </div>
               </div>
-            );
-            })}
+            ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Trending Metrics */}
+      {/* 03. Spectral Analysis */}
       {trendingData && trendingData.length > 0 && (
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-          <h3 className="text-xl font-bold mb-4">Trending Analysis</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <section>
+          <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-600 mb-8 flex items-center gap-4">
+            <span className="w-12 h-[1px] bg-gray-800"></span>
+            03_SPECTRAL_STATIONARITY
+          </h3>
+          <div className="overflow-x-auto border border-gray-900">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="text-left text-gray-400 border-b border-gray-700">
-                  <th className="pb-3">Symbol</th>
-                  <th className="pb-3">Trend Strength</th>
-                  <th className="pb-3">Hurst Exponent</th>
-                  <th className="pb-3">Fractional D</th>
-                  <th className="pb-3">Stationary</th>
-                  <th className="pb-3">ADF Stat</th>
-                  <th className="pb-3">Status</th>
+                <tr className="bg-white text-black uppercase text-[9px] font-black tracking-widest">
+                  <th className="p-4">Symbol</th>
+                  <th className="p-4">Trend_Vector</th>
+                  <th className="p-4">Hurst_Exp</th>
+                  <th className="p-4">Frac_Diff</th>
+                  <th className="p-4">Stationary</th>
+                  <th className="p-4">Status_Logic</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="text-[10px] font-bold uppercase tracking-tighter">
                 {trendingData.map((trend, idx) => (
-                  <tr key={idx} className="border-b border-gray-800/50 hover:bg-gray-800/30">
-                    <td className="py-3 font-medium">{trend.symbol}</td>
-                    <td className="py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 bg-gray-700 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full ${
-                              trend.trend_strength > 0.7 
-                                ? 'bg-green-500' 
-                                : trend.trend_strength < 0.3
-                                ? 'bg-red-500'
-                                : 'bg-yellow-500'
-                            }`}
-                            style={{ width: `${Math.min(trend.trend_strength * 100, 100)}%` }}
-                          />
+                  <tr key={idx} className="border-b border-gray-900 hover:bg-gray-950 transition-colors">
+                    <td className="p-4 border-r border-gray-900 font-black text-xs">{trend.symbol}</td>
+                    <td className="p-4 border-r border-gray-900">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 bg-gray-900 h-1">
+                          <div className="bg-white h-full" style={{ width: `${(trend.trend_strength || 0) * 100}%` }}></div>
                         </div>
-                        <span className="text-sm">{(trend.trend_strength * 100).toFixed(0)}%</span>
+                        <span className="w-8">{(trend.trend_strength || 0).toFixed(2)}</span>
                       </div>
                     </td>
-                    <td className="py-3">
-                      <span className={trend.hurst_exponent > 0.65 
-                        ? 'text-green-400' 
-                        : trend.hurst_exponent < 0.35 
-                        ? 'text-red-400' 
-                        : 'text-yellow-400'
-                      }>
-                        {trend.hurst_exponent.toFixed(3)}
-                      </span>
+                    <td className="p-4 border-r border-gray-900 font-mono">{trend.hurst_exponent?.toFixed(4)}</td>
+                    <td className="p-4 border-r border-gray-900 font-mono">{trend.fractional_d?.toFixed(4)}</td>
+                    <td className="p-4 border-r border-gray-900">
+                      {trend.is_stationary ? '[ TRUE ]' : '[ FALSE ]'}
                     </td>
-                    <td className="py-3">{trend.fractional_d.toFixed(3)}</td>
-                    <td className="py-3">
-                      <span className={`px-2 py-1 rounded text-xs ${
-                        trend.is_stationary 
-                          ? 'bg-green-900/50 text-green-300' 
-                          : 'bg-red-900/50 text-red-300'
-                      }`}>
-                        {trend.is_stationary ? 'Stationary' : 'Non-Stationary'}
-                      </span>
-                    </td>
-                    <td className="py-3">{trend.adf_statistic.toFixed(3)}</td>
-                    <td className="py-3">
-                      {trend.hurst_exponent > 0.65 && trend.trend_strength > 0.7 ? (
-                        <span className="text-green-400 font-semibold">Strong Trend</span>
-                      ) : trend.hurst_exponent < 0.35 && trend.trend_strength < 0.3 ? (
-                        <span className="text-red-400 font-semibold">Mean Reverting</span>
-                      ) : (
-                        <span className="text-yellow-400 font-semibold">Random Walk</span>
-                      )}
+                    <td className="p-4 font-black">
+                      {trend.hurst_exponent > 0.6 ? 'EQUILIBRIUM_TREND' : trend.hurst_exponent < 0.4 ? 'MEAN_REVERTING' : 'BROWNIAN_MOTION'}
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-
-      {/* Regime Metrics */}
-      {regimesData && regimesData.length > 0 && (
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-          <h3 className="text-xl font-bold mb-4">Market Regimes</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {regimesData.map((regime, idx) => (
-              <div key={idx} className="bg-gray-900/50 p-4 rounded-lg">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="font-semibold text-purple-300">{regime.symbol}</span>
-                  <span className="text-sm text-gray-400">
-                    {regime.regime_statistics ? Object.keys(regime.regime_statistics).length : 0} regimes
-                  </span>
-                </div>
-                {regime.regime_statistics && (
-                  <div className="space-y-2">
-                    {Object.entries(regime.regime_statistics).map(([regimeName, stats]: [string, any]) => (
-                      <div key={regimeName} className="text-sm">
-                        <div className="flex justify-between mb-1">
-                          <span className="text-gray-400">{regimeName}</span>
-                          <span className="font-medium">{(stats.percentage || 0).toFixed(1)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-800 rounded-full h-1.5">
-                          <div 
-                            className="h-1.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
-                            style={{ width: `${stats.percentage || 0}%` }}
-                          />
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>μ: {(stats.mean_return * 100).toFixed(2)}%</span>
-                          <span>σ: {(stats.std_return * 100).toFixed(2)}%</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Microstructure Metrics */}
-      {microstructureData && microstructureData.length > 0 && (
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
-          <h3 className="text-xl font-bold mb-4">Microstructure Metrics</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {microstructureData.map((micro, idx) => (
-              <div key={idx} className="bg-gray-900/50 p-4 rounded-lg">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="font-semibold text-blue-300">{micro.symbol}</span>
-                  <span className={`text-sm px-2 py-1 rounded ${
-                    micro.amihud_illiquidity > 1e-6 
-                      ? 'bg-red-900/50 text-red-300' 
-                      : 'bg-green-900/50 text-green-300'
-                  }`}>
-                    Illiquidity: {(micro.amihud_illiquidity * 1e6).toFixed(2)}
-                  </span>
-                </div>
-                <div className="space-y-2 text-sm text-gray-400">
-                  <div className="flex justify-between">
-                    <span>Mean Volume:</span>
-                    <span>{(micro.volume_profile?.mean_volume / 1e6).toFixed(2)}M</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Vol Skew:</span>
-                    <span>{micro.volume_profile?.volume_skew?.toFixed(2) || '0.00'}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Realized Vol:</span>
-                    <span>{(micro.volatility_metrics?.realized_volatility * 100).toFixed(1)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Term Structure:</span>
-                    <span className={
-                      micro.volatility_metrics?.term_structure > 1.2 
-                        ? 'text-red-400' 
-                        : micro.volatility_metrics?.term_structure < 0.8
-                        ? 'text-green-400'
-                        : 'text-yellow-400'
-                    }>
-                      {micro.volatility_metrics?.term_structure?.toFixed(2) || '1.00'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        </section>
       )}
     </div>
   );

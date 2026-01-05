@@ -2,7 +2,9 @@
 
 import { AnalysisResponse } from '../types/api';
 import MetricsDisplay from './MetricsDisplay';
-import Charts from './Charts';
+import dynamic from 'next/dynamic';
+
+const Charts = dynamic(() => import('./Charts'), { ssr: false });
 
 interface DashboardProps {
   data: AnalysisResponse;
@@ -20,24 +22,24 @@ export default function Dashboard({ data }: DashboardProps) {
   } = data;
 
   return (
-    <div className="space-y-8">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 p-6 rounded-xl border border-blue-800/50">
-          <h3 className="text-lg font-semibold text-blue-300">Instruments</h3>
-          <p className="text-3xl font-bold mt-2">{instruments.length}</p>
-          <p className="text-sm text-gray-400 mt-1">Analyzed</p>
+    <div className="space-y-12">
+      {/* Summary Matrix */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-t border-l border-gray-800">
+        <div className="p-6 border-r border-b border-gray-800 group hover:bg-white hover:text-black transition-all">
+          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 group-hover:text-black">Assets_Scanned</h3>
+          <p className="text-4xl font-black">{instruments.length}</p>
+          <div className="mt-2 text-[10px] font-mono text-gray-600 group-hover:text-black italic">Primary_Node_Active</div>
         </div>
         
-        <div className="bg-gradient-to-br from-purple-900/50 to-purple-800/30 p-6 rounded-xl border border-purple-800/50">
-          <h3 className="text-lg font-semibold text-purple-300">Cointegrated Pairs</h3>
-          <p className="text-3xl font-bold mt-2">{cointegration?.length || 0}</p>
-          <p className="text-sm text-gray-400 mt-1">Trading opportunities</p>
+        <div className="p-6 border-r border-b border-gray-800 group hover:bg-white hover:text-black transition-all">
+          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 group-hover:text-black">Equilibrium_Pairs</h3>
+          <p className="text-4xl font-black">{cointegration?.length || 0}</p>
+          <div className="mt-2 text-[10px] font-mono text-gray-600 group-hover:text-black italic">Cointegration_Confirmed</div>
         </div>
         
-        <div className="bg-gradient-to-br from-green-900/50 to-green-800/30 p-6 rounded-xl border border-green-800/50">
-          <h3 className="text-lg font-semibold text-green-300">Avg Volatility</h3>
-          <p className="text-3xl font-bold mt-2">
+        <div className="p-6 border-r border-b border-gray-800 group hover:bg-white hover:text-black transition-all">
+          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 group-hover:text-black">Avg_Realized_Vol</h3>
+          <p className="text-4xl font-black">
             {volatility && volatility.length > 0 
               ? `${(volatility.reduce((acc, v) => {
                   const currentVol = Array.isArray(v.realized_volatility) 
@@ -45,114 +47,98 @@ export default function Dashboard({ data }: DashboardProps) {
                     : 0;
                   return acc + currentVol;
                 }, 0) / volatility.length * 100).toFixed(1)}%`
-              : '0%'}
+              : '0.0%'}
           </p>
-          <p className="text-sm text-gray-400 mt-1">Annualized</p>
+          <div className="mt-2 text-[10px] font-mono text-gray-600 group-hover:text-black italic">Standard_Deviation_252D</div>
         </div>
         
-        <div className="bg-gradient-to-br from-yellow-900/50 to-yellow-800/30 p-6 rounded-xl border border-yellow-800/50">
-          <h3 className="text-lg font-semibold text-yellow-300">Market Regime</h3>
-          <p className="text-3xl font-bold mt-2 capitalize">
-            {execution_recommendations?.market_regime?.replace('_', ' ') || 'Neutral'}
+        <div className="p-6 border-r border-b border-gray-800 group hover:bg-white hover:text-black transition-all">
+          <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4 group-hover:text-black">Dominant_Flow</h3>
+          <p className="text-xl font-black truncate uppercase">
+            {execution_recommendations?.dominant_instrument || 'Calculating...'}
           </p>
-          <p className="text-sm text-gray-400 mt-1">Current state</p>
+          <div className="mt-2 text-[10px] font-mono text-gray-600 group-hover:text-black italic">
+            {execution_recommendations?.lead_lag_score 
+              ? `TE_SCORE: ${execution_recommendations.lead_lag_score.toFixed(4)}`
+              : 'Transfer_Entropy_Inert'}
+          </div>
         </div>
       </div>
 
-      {/* Recommendations */}
+      {/* Execution Logic - Stark Terminal Style */}
       {execution_recommendations && (
-        <div className="bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl p-6 border border-gray-700">
-          <h2 className="text-2xl font-bold mb-4">Execution Recommendations</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="space-y-2">
-              <span className="text-sm text-gray-400">Market Regime</span>
-              <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                execution_recommendations.market_regime?.includes('bull') 
-                  ? 'bg-green-900/50 text-green-300' 
-                  : execution_recommendations.market_regime?.includes('bear')
-                  ? 'bg-red-900/50 text-red-300'
-                  : 'bg-yellow-900/50 text-yellow-300'
-              }`}>
-                {execution_recommendations.market_regime}
+        <div className="border border-gray-800 p-8">
+          <div className="flex justify-between items-start mb-8">
+            <h2 className="text-xs font-black uppercase tracking-[0.4em] border-b-2 border-white pb-2">Execution_Logic_Output</h2>
+            <span className="text-[10px] text-gray-600 font-mono">SYS_AUTH: STARK_REASONING</span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Market_Regime</span>
+              <div className="text-sm font-black border-l-2 border-white pl-3 py-1 uppercase">
+                {execution_recommendations.market_regime || 'Neutral_State'}
               </div>
             </div>
             
-            <div className="space-y-2">
-              <span className="text-sm text-gray-400">Volatility</span>
-              <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                execution_recommendations.volatility_environment === 'high'
-                  ? 'bg-red-900/50 text-red-300'
-                  : execution_recommendations.volatility_environment === 'low'
-                  ? 'bg-green-900/50 text-green-300'
-                  : 'bg-yellow-900/50 text-yellow-300'
-              }`}>
-                {execution_recommendations.volatility_environment}
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Vol_Env</span>
+              <div className="text-sm font-black border-l-2 border-white pl-3 py-1 uppercase">
+                {execution_recommendations.volatility_environment || 'Medium_Risk'}
               </div>
             </div>
             
-            <div className="space-y-2">
-              <span className="text-sm text-gray-400">Position Sizing</span>
-              <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                execution_recommendations.position_sizing === 'reduced'
-                  ? 'bg-red-900/50 text-red-300'
-                  : 'bg-green-900/50 text-green-300'
-              }`}>
-                {execution_recommendations.position_sizing}
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Sizing_Profile</span>
+              <div className="text-sm font-black border-l-2 border-white pl-3 py-1 uppercase">
+                {execution_recommendations.position_sizing || 'Normal_Allocation'}
               </div>
             </div>
             
-            <div className="space-y-2">
-              <span className="text-sm text-gray-400">Execution Timing</span>
-              <div className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                execution_recommendations.execution_timing === 'aggressive'
-                  ? 'bg-green-900/50 text-green-300'
-                  : execution_recommendations.execution_timing === 'conservative'
-                  ? 'bg-red-900/50 text-red-300'
-                  : 'bg-yellow-900/50 text-yellow-300'
-              }`}>
-                {execution_recommendations.execution_timing}
+            <div className="space-y-3">
+              <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Execution_Bias</span>
+              <div className="text-sm font-black border-l-2 border-white pl-3 py-1 uppercase">
+                {execution_recommendations.execution_timing || 'Standard_Order'}
               </div>
             </div>
           </div>
           
-          {/* Recommended Strategies */}
-          {execution_recommendations.recommended_strategies && 
-           execution_recommendations.recommended_strategies.length > 0 && (
-            <div className="mt-4">
-              <span className="text-sm text-gray-400">Recommended Strategies:</span>
-              <div className="flex flex-wrap gap-2 mt-2">
-                {execution_recommendations.recommended_strategies.map((strategy, idx) => (
-                  <span key={idx} className="px-3 py-1 bg-blue-900/50 text-blue-300 rounded-full text-sm">
+          {/* Detailed Strategies Table Feel */}
+          <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-12 pt-8 border-t border-gray-900">
+            <div>
+              <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-4 block">Recommended_Vectors:</span>
+              <div className="flex flex-wrap gap-3">
+                {execution_recommendations.recommended_strategies?.map((strategy, idx) => (
+                  <span key={idx} className="px-3 py-1 border border-gray-700 text-white text-[10px] font-bold uppercase tracking-tighter">
                     {strategy}
                   </span>
-                ))}
+                )) || <span className="text-gray-700 italic text-[10px]">No_Active_Signals</span>}
               </div>
             </div>
-          )}
-          
-          {/* Risk Warnings */}
-          {execution_recommendations.risk_warnings && 
-           execution_recommendations.risk_warnings.length > 0 && (
-            <div className="mt-4">
-              <span className="text-sm text-red-400">Risk Warnings:</span>
-              <ul className="mt-2 space-y-1">
-                {execution_recommendations.risk_warnings.map((warning, idx) => (
-                  <li key={idx} className="text-sm text-red-300">• {warning}</li>
-                ))}
-              </ul>
+            
+            <div>
+              <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest mb-4 block">Risk_Anomalies:</span>
+              <div className="space-y-2">
+                {execution_recommendations.risk_warnings?.map((warning, idx) => (
+                  <div key={idx} className="text-[10px] font-bold text-white uppercase flex items-center gap-3">
+                    <span className="w-1 h-1 bg-white"></span>
+                    {warning}
+                  </div>
+                )) || <div className="text-gray-700 italic text-[10px]">Baseline_Noise_Only</div>}
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Charts Section */}
+      {/* Visual Data Matrices */}
       <Charts 
         volatilityData={volatility}
         trendingData={trending}
         cointegrationData={cointegration}
       />
 
-      {/* Metrics Display */}
+      {/* Raw Metric Tables */}
       <MetricsDisplay 
         volatilityData={volatility}
         trendingData={trending}

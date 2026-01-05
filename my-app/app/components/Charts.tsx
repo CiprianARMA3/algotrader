@@ -1,6 +1,6 @@
 'use client';
 
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ScatterChart, Scatter } from 'recharts';
 
 interface ChartsProps {
   volatilityData?: any[];
@@ -9,8 +9,7 @@ interface ChartsProps {
 }
 
 export default function Charts({ volatilityData, trendingData, cointegrationData }: ChartsProps) {
-  // Prepare volatility chart data
-  const volChartData = volatilityData?.map((v, idx) => ({
+  const volChartData = volatilityData?.map((v) => ({
     name: v.symbol,
     volatility: Array.isArray(v.realized_volatility) 
       ? v.realized_volatility.slice(-1)[0] * 100 
@@ -20,121 +19,98 @@ export default function Charts({ volatilityData, trendingData, cointegrationData
       : 0
   })) || [];
 
-  // Prepare trending data
-  const trendChartData = trendingData?.map((t, idx) => ({
+  const trendChartData = trendingData?.map((t) => ({
     name: t.symbol,
     trendStrength: t.trend_strength || 0,
     hurstExponent: t.hurst_exponent || 0.5,
     fractionalD: t.fractional_d || 0.5
   })) || [];
 
-  // Prepare cointegration data
-  const cointChartData = cointegrationData?.slice(0, 10).map((c, idx) => ({
-    name: c.pair.join('/'),
+  const cointChartData = cointegrationData?.slice(0, 10).map((c) => ({
+    name: Array.isArray(c.pair) ? c.pair.join('/') : 'UNKNOWN',
     halfLife: c.half_life || 0,
     hurst: c.hurst_exponent || 0.5,
     pValue: c.cointegration_pvalue || 1
   })) || [];
 
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-black border border-gray-800 p-3 text-[10px] uppercase font-bold">
+          <p className="border-b border-gray-900 pb-1 mb-2 tracking-widest">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: 'white' }}>
+              {entry.name}: {typeof entry.value === 'number' ? entry.value.toFixed(4) : entry.value}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      {/* Volatility Comparison Chart */}
-      <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
-        <h3 className="text-lg font-semibold mb-4">Volatility Analysis</h3>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+      {/* Volatility - B&W */}
+      <div className="border border-gray-900 p-6">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-8 border-l-4 border-white pl-4">Matrix_Vol_Dispersion</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={volChartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis dataKey="name" stroke="#888" fontSize={12} />
-            <YAxis stroke="#888" fontSize={12} />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-              formatter={(value) => [`${Number(value).toFixed(2)}%`, 'Volatility']}
-            />
-            <Legend />
-            <Bar dataKey="volatility" fill="#3b82f6" name="Realized Vol" />
-            <Bar dataKey="garch_vol" fill="#8b5cf6" name="GARCH Vol" />
+          <BarChart data={volChartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="2 2" stroke="#111" vertical={false} />
+            <XAxis dataKey="name" stroke="#333" fontSize={10} tickLine={false} axisLine={false} />
+            <YAxis stroke="#333" fontSize={10} tickLine={false} axisLine={false} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: '#0a0a0a' }} />
+            <Legend iconType="square" align="right" verticalAlign="top" wrapperStyle={{ fontSize: '8px', textTransform: 'uppercase', letterSpacing: '2px', paddingBottom: '20px' }} />
+            <Bar dataKey="volatility" fill="#FFFFFF" name="REALIZED_V" />
+            <Bar dataKey="garch_vol" fill="#333333" name="GARCH_V" />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Trending Analysis Chart */}
-      <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
-        <h3 className="text-lg font-semibold mb-4">Trending Analysis</h3>
+      {/* Trending - B&W Scatter */}
+      <div className="border border-gray-900 p-6">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-8 border-l-4 border-white pl-4">Spectral_Trend_Correlation</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <ScatterChart>
-            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis 
-              dataKey="hurstExponent" 
-              type="number"
-              name="Hurst Exponent"
-              stroke="#888"
-              domain={[0, 1]}
-            />
-            <YAxis 
-              dataKey="trendStrength" 
-              type="number"
-              name="Trend Strength"
-              stroke="#888"
-            />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-              formatter={(value, name) => [Number(value).toFixed(3), name]}
-            />
-            <Legend />
-            <Scatter 
-              name="Instruments" 
-              data={trendChartData} 
-              fill="#10b981"
-              shape="circle"
-            />
+          <ScatterChart margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="2 2" stroke="#111" />
+            <XAxis dataKey="hurstExponent" type="number" name="HURST" stroke="#333" domain={[0, 1]} fontSize={10} tickLine={false} axisLine={false} />
+            <YAxis dataKey="trendStrength" type="number" name="STRENGTH" stroke="#333" fontSize={10} tickLine={false} axisLine={false} />
+            <Tooltip content={<CustomTooltip />} />
+            <Scatter name="Assets" data={trendChartData} fill="#FFF" shape="cross" />
           </ScatterChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Cointegration Analysis */}
-      <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
-        <h3 className="text-lg font-semibold mb-4">Cointegration Analysis</h3>
+      {/* Cointegration - B&W */}
+      <div className="border border-gray-900 p-6">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-8 border-l-4 border-white pl-4">Equilibrium_Half_Life</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={cointChartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-            <XAxis dataKey="name" stroke="#888" fontSize={10} angle={-45} textAnchor="end" />
-            <YAxis stroke="#888" fontSize={12} />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-              formatter={(value) => [Number(value).toFixed(2), 'Value']}
-            />
-            <Legend />
-            <Bar dataKey="halfLife" fill="#f59e0b" name="Half Life (days)" />
-            <Bar dataKey="hurst" fill="#ec4899" name="Hurst Exponent" />
+          <BarChart data={cointChartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="2 2" stroke="#111" vertical={false} />
+            <XAxis dataKey="name" stroke="#333" fontSize={10} tickLine={false} axisLine={false} />
+            <YAxis stroke="#333" fontSize={10} tickLine={false} axisLine={false} />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: '#0a0a0a' }} />
+            <Bar dataKey="halfLife" fill="#FFF" name="HL_DAYS" />
+            <Bar dataKey="hurst" fill="#222" name="HURST_E" />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
-      {/* Market Regime */}
-      <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700">
-        <h3 className="text-lg font-semibold mb-4">Market Metrics</h3>
-        <div className="space-y-4">
-          {trendChartData.slice(0, 5).map((item) => (
+      {/* Numerical Matrix Section */}
+      <div className="border border-gray-900 p-6">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-8 border-l-4 border-white pl-4">Data_Stream_Output</h3>
+        <div className="space-y-6">
+          {trendChartData.slice(0, 4).map((item) => (
             <div key={item.name} className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-300">{item.name}</span>
-                <span className={`font-semibold ${
-                  item.trendStrength > 0.7 ? 'text-green-400' :
-                  item.trendStrength < 0.3 ? 'text-red-400' :
-                  'text-yellow-400'
-                }`}>
-                  Trend: {(item.trendStrength * 100).toFixed(0)}%
-                </span>
+              <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                <span>{item.name}</span>
+                <span className="text-gray-500">Stability: {item.hurstExponent.toFixed(3)}</span>
               </div>
-              <div className="w-full bg-gray-700 rounded-full h-2">
+              <div className="w-full bg-gray-900 h-[2px]">
                 <div 
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 h-2 rounded-full"
+                  className="bg-white h-full transition-all duration-1000"
                   style={{ width: `${Math.min(item.trendStrength * 100, 100)}%` }}
                 />
-              </div>
-              <div className="flex justify-between text-xs text-gray-400">
-                <span>Hurst: {item.hurstExponent.toFixed(3)}</span>
-                <span>Fractional D: {item.fractionalD.toFixed(3)}</span>
               </div>
             </div>
           ))}

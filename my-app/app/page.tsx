@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
-import { AnalysisResponse, InstrumentRequest, AnalysisType } from './types/api';
+import { AnalysisResponse, InstrumentRequest, AnalysisType, TimeFrame } from './types/api';
 
-// Cloudflare tunnel URL (replace with your actual URL)
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
 export default function Home() {
@@ -24,13 +23,13 @@ export default function Home() {
     try {
       const request: InstrumentRequest = {
         symbols: selectedInstruments,
-        timeframe: timeframe as any,
+        timeframe: timeframe as TimeFrame,
         lookback_days: lookbackDays
       };
 
       const analysisRequest = {
         instruments: request,
-        analysis_types: ['full'],
+        analysis_types: [AnalysisType.FULL_ANALYSIS],
         parameters: {}
       };
 
@@ -57,160 +56,154 @@ export default function Home() {
     }
   };
 
-  const quickAnalyze = async (symbol: string) => {
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/v1/quick-analysis/${symbol}?timeframe=${timeframe}&lookback_days=${lookbackDays}`);
-      const data = await response.json();
-      console.log('Quick analysis:', data);
-      // Update UI with quick analysis results
-    } catch (err) {
-      console.error('Quick analysis error:', err);
-    }
-  };
-
-  // Fetch initial data on component mount
   useEffect(() => {
     performAnalysis();
   }, []);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <header className="mb-8">
-          <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600">
-            Algorithmic Trading Analytics Dashboard
-          </h1>
-          <p className="text-gray-400 mt-2">
-            Advanced quantitative frameworks for institutional trading analysis
-          </p>
+    <main className="min-h-screen bg-black text-white font-mono p-4 md:p-8 selection:bg-white selection:text-black">
+      <div className="max-w-7xl mx-auto border border-gray-800 p-6">
+        {/* Header - Stark B&W */}
+        <header className="mb-12 border-b border-gray-800 pb-8 flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tighter uppercase">
+              Institutional Terminal / v1.0
+            </h1>
+            <p className="text-gray-500 mt-2 text-sm uppercase tracking-widest">
+              Quantitative Analysis & Risk Modeling Framework
+            </p>
+          </div>
+          <div className="text-right text-xs text-gray-600">
+            <div>STATUS: {isLoading ? 'PROCESSING' : 'READY'}</div>
+            <div>CONN: {BACKEND_URL ? 'REMOTE' : 'LOCAL'}</div>
+            <div>TS: {new Date().toISOString()}</div>
+          </div>
         </header>
 
-        {/* Controls */}
-        <div className="bg-gray-800 rounded-xl p-6 mb-8">
-          <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Selected Instruments ({selectedInstruments.length})
+        {/* Controls - Minimalist Table Feel */}
+        <div className="mb-12 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="col-span-2">
+              <label className="block text-xs font-bold text-gray-500 uppercase mb-3 tracking-widest">
+                Portfolio Basket
               </label>
               <div className="flex flex-wrap gap-2">
                 {selectedInstruments.map((symbol) => (
                   <span
                     key={symbol}
-                    className="px-3 py-1 bg-gray-700 rounded-full text-sm flex items-center gap-2"
+                    className="px-3 py-1 bg-white text-black text-xs font-bold flex items-center gap-2 hover:bg-gray-200 transition-colors"
                   >
                     {symbol}
                     <button
                       onClick={() => setSelectedInstruments(prev => prev.filter(s => s !== symbol))}
-                      className="text-gray-400 hover:text-red-400"
+                      className="hover:text-red-600 transition-colors"
                     >
                       ×
                     </button>
                   </span>
                 ))}
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Timeframe</label>
-                <select
-                  value={timeframe}
-                  onChange={(e) => setTimeframe(e.target.value)}
-                  className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                >
-                  <option value="1d">Daily</option>
-                  <option value="1h">Hourly</option>
-                  <option value="15m">15 Minute</option>
-                  <option value="1wk">Weekly</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Lookback</label>
-                <select
-                  value={lookbackDays}
-                  onChange={(e) => setLookbackDays(Number(e.target.value))}
-                  className="bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white"
-                >
-                  <option value={30}>30 days</option>
-                  <option value={90}>90 days</option>
-                  <option value={180}>180 days</option>
-                  <option value={365}>1 year</option>
-                  <option value={730}>2 years</option>
-                </select>
-              </div>
-              
-              <div className="flex items-end">
-                <button
-                  onClick={performAnalysis}
-                  disabled={isLoading}
-                  className="px-6 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? 'Analyzing...' : 'Run Analysis'}
+                <button className="px-3 py-1 border border-dashed border-gray-700 text-gray-500 text-xs hover:border-white hover:text-white transition-all">
+                  + ADD_SYMBOL
                 </button>
               </div>
             </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-3 tracking-widest">Interval</label>
+                <select
+                  value={timeframe}
+                  onChange={(e) => setTimeframe(e.target.value)}
+                  className="w-full bg-black border border-gray-800 px-3 py-2 text-xs uppercase focus:border-white outline-none transition-colors cursor-pointer"
+                >
+                  <option value="1d">1_Day</option>
+                  <option value="1h">1_Hour</option>
+                  <option value="15m">15_Min</option>
+                  <option value="1wk">1_Week</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-xs font-bold text-gray-500 uppercase mb-3 tracking-widest">Window</label>
+                <select
+                  value={lookbackDays}
+                  onChange={(e) => setLookbackDays(Number(e.target.value))}
+                  className="w-full bg-black border border-gray-800 px-3 py-2 text-xs uppercase focus:border-white outline-none transition-colors cursor-pointer"
+                >
+                  <option value={30}>30_D</option>
+                  <option value={90}>90_D</option>
+                  <option value={180}>180_D</option>
+                  <option value={365}>1_YR</option>
+                  <option value={730}>2_YR</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t border-gray-900">
+            <button
+              onClick={performAnalysis}
+              disabled={isLoading}
+              className="px-8 py-3 bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-gray-200 disabled:opacity-20 transition-all active:scale-95"
+            >
+              {isLoading ? 'RUNNING_MODELS...' : 'EXECUTE_ANALYSIS'}
+            </button>
           </div>
         </div>
 
         {/* Error Display */}
         {error && (
-          <div className="mb-8 p-4 bg-red-900/50 border border-red-700 rounded-lg">
-            <p className="text-red-300">Error: {error}</p>
-          </div>
-        )}
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="mb-12 p-4 border border-red-900 bg-red-950/10 text-red-500 text-xs">
+            <span className="font-bold uppercase mr-2">[CRITICAL_ERROR]:</span> {error}
           </div>
         )}
 
         {/* Dashboard Content */}
-        {analysisData && !isLoading && (
-          <Dashboard data={analysisData} />
-        )}
+        <div className="min-h-[400px]">
+          {isLoading ? (
+            <div className="flex flex-col justify-center items-center h-64 space-y-4">
+              <div className="w-12 h-1 border-t-2 border-white animate-pulse"></div>
+              <div className="text-[10px] text-gray-500 tracking-[0.3em] uppercase animate-pulse">
+                Synthesizing Statistical Matrices
+              </div>
+            </div>
+          ) : (
+            analysisData && <Dashboard data={analysisData} />
+          )}
+        </div>
 
-        {/* Info Section */}
-        <div className="mt-12 p-6 bg-gradient-to-r from-gray-800 to-gray-900 rounded-xl">
-          <h2 className="text-2xl font-bold mb-4">Analysis Methodologies</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-gray-800/50 p-4 rounded-lg">
-              <h3 className="font-semibold text-blue-400 mb-2">Econometrics</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Cointegration & Johansen Test</li>
-                <li>• PCA Eigenportfolios</li>
-                <li>• Vector Error Correction Models</li>
-              </ul>
+        {/* Bottom Data Legend - High Contrast */}
+        <footer className="mt-20 border-t border-gray-800 pt-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 text-[10px]">
+            <div className="space-y-4">
+              <h3 className="font-bold text-white uppercase tracking-widest border-b border-gray-900 pb-2">Econometrics</h3>
+              <p className="text-gray-500 leading-relaxed">
+                Cointegration, Johansen Multivariate tests, and PCA Eigenportfolios are used to identify structural equilibrium and residual anomalies.
+              </p>
             </div>
-            <div className="bg-gray-800/50 p-4 rounded-lg">
-              <h3 className="font-semibold text-purple-400 mb-2">Signal Processing</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Fractional Differentiation</li>
-                <li>• Wavelet Transforms</li>
-                <li>• Kalman Filter Estimation</li>
-              </ul>
+            <div className="space-y-4">
+              <h3 className="font-bold text-white uppercase tracking-widest border-b border-gray-900 pb-2">Microstructure</h3>
+              <p className="text-gray-500 leading-relaxed">
+                VPIN and Kyle's Lambda quantify toxic flow and market depth to assess liquidity risk and adverse selection.
+              </p>
             </div>
-            <div className="bg-gray-800/50 p-4 rounded-lg">
-              <h3 className="font-semibold text-green-400 mb-2">Volatility</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• GARCH Family Models</li>
-                <li>• Realized Volatility</li>
-                <li>• Regime Detection</li>
-              </ul>
+            <div className="space-y-4">
+              <h3 className="font-bold text-white uppercase tracking-widest border-b border-gray-900 pb-2">Signals</h3>
+              <p className="text-gray-500 leading-relaxed">
+                Fractional Differentiation maintains memory while ensuring stationarity. Wavelet Denoising separates signal from Gaussian noise.
+              </p>
             </div>
-            <div className="bg-gray-800/50 p-4 rounded-lg">
-              <h3 className="font-semibold text-yellow-400 mb-2">Machine Learning</h3>
-              <ul className="text-sm text-gray-400 space-y-1">
-                <li>• Hidden Markov Models</li>
-                <li>• Transfer Entropy</li>
-                <li>• Change Point Detection</li>
-              </ul>
+            <div className="space-y-4">
+              <h3 className="font-bold text-white uppercase tracking-widest border-b border-gray-900 pb-2">Modeling</h3>
+              <p className="text-gray-500 leading-relaxed">
+                Bayesian Structural Time Series and GJR-GARCH models manage time-varying volatility and regime-switching probabilities.
+              </p>
             </div>
           </div>
-        </div>
+          <div className="mt-12 text-center text-gray-700 text-[8px] tracking-[0.5em] uppercase">
+            Data provided by institutional feeds. Proprietary Framework v1.0.26
+          </div>
+        </footer>
       </div>
     </main>
   );
