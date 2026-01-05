@@ -20,18 +20,23 @@ export default function MetricsDisplay({
         <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
           <h3 className="text-xl font-bold mb-4">Volatility Metrics</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {volatilityData.slice(0, 8).map((vol, idx) => (
+            {volatilityData.slice(0, 8).map((vol, idx) => {
+              const currentVol = Array.isArray(vol.realized_volatility) 
+                ? vol.realized_volatility.slice(-1)[0] 
+                : 0;
+              
+              return (
               <div key={idx} className="bg-gray-900/50 p-4 rounded-lg">
                 <div className="flex justify-between items-start mb-2">
                   <span className="font-semibold text-blue-300">{vol.symbol}</span>
                   <span className={`text-sm px-2 py-1 rounded ${
-                    vol.realized_volatility > 0.3 
+                    currentVol > 0.3 
                       ? 'bg-red-900/50 text-red-300' 
-                      : vol.realized_volatility < 0.15
+                      : currentVol < 0.15
                       ? 'bg-green-900/50 text-green-300'
                       : 'bg-yellow-900/50 text-yellow-300'
                   }`}>
-                    {(vol.realized_volatility * 100).toFixed(1)}%
+                    {(currentVol * 100).toFixed(1)}%
                   </span>
                 </div>
                 <div className="space-y-1 text-sm text-gray-400">
@@ -57,7 +62,8 @@ export default function MetricsDisplay({
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
       )}

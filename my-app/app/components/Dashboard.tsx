@@ -39,7 +39,12 @@ export default function Dashboard({ data }: DashboardProps) {
           <h3 className="text-lg font-semibold text-green-300">Avg Volatility</h3>
           <p className="text-3xl font-bold mt-2">
             {volatility && volatility.length > 0 
-              ? `${(volatility.reduce((acc, v) => acc + (v.realized_volatility || 0), 0) / volatility.length * 100).toFixed(1)}%`
+              ? `${(volatility.reduce((acc, v) => {
+                  const currentVol = Array.isArray(v.realized_volatility) 
+                    ? v.realized_volatility.slice(-1)[0] 
+                    : 0;
+                  return acc + currentVol;
+                }, 0) / volatility.length * 100).toFixed(1)}%`
               : '0%'}
           </p>
           <p className="text-sm text-gray-400 mt-1">Annualized</p>
