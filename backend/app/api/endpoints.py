@@ -29,6 +29,19 @@ signal_processor = SignalProcessor()
 volatility_analyzer = VolatilityAnalyzer()
 ml_analyzer = MachineLearningAnalyzer()
 
+def convert_numpy(obj):
+    if isinstance(obj, np.integer):
+        return int(obj)
+    if isinstance(obj, np.floating):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, dict):
+        return {k: convert_numpy(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [convert_numpy(i) for i in obj]
+    return obj
+
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze_market(
     request: AnalysisRequest = Body(...)
@@ -90,7 +103,10 @@ async def analyze_market(
         # Generate execution recommendations
         results['execution_recommendations'] = generate_execution_recommendations(results)
         
-        return AnalysisResponse(**results)
+        # Convert all numpy types to native python types for serialization
+        clean_results = convert_numpy(results)
+        
+        return AnalysisResponse(**clean_results)
         
     except Exception as e:
         logger.error(f"Analysis error: {str(e)}")

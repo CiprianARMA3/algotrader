@@ -1,0 +1,117 @@
+2026-01-05T18:22:09.000000000Z [inf]  Starting Container
+2026-01-05T18:22:13.377816304Z [err]  INFO:     Started server process [1]
+2026-01-05T18:22:13.377823088Z [err]  INFO:     Waiting for application startup.
+2026-01-05T18:22:13.377829271Z [err]  INFO:     Application startup complete.
+2026-01-05T18:22:13.377835521Z [err]  INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
+2026-01-05T18:22:15.139209415Z [err]  2026-01-05 18:22:15,134 - app.api.endpoints - INFO - Starting analysis for 5 instruments
+2026-01-05T18:22:15.139221196Z [err]  2026-01-05 18:22:15,134 - app.services.data_fetcher - INFO - Fetching data for AAPL from 2025-01-05 to 2026-01-05
+2026-01-05T18:22:15.498554442Z [err]  2026-01-05 18:22:15,496 - app.services.data_fetcher - INFO - Fetching data for MSFT from 2025-01-05 to 2026-01-05
+2026-01-05T18:22:15.647702056Z [err]  2026-01-05 18:22:15,645 - app.services.data_fetcher - INFO - Fetching data for GOOGL from 2025-01-05 to 2026-01-05
+2026-01-05T18:22:15.756395114Z [err]  2026-01-05 18:22:15,750 - app.services.data_fetcher - INFO - Fetching data for EURUSD=X from 2025-01-05 to 2026-01-05
+2026-01-05T18:22:15.845051787Z [err]  2026-01-05 18:22:15,843 - app.services.data_fetcher - INFO - Fetching data for GBPUSD=X from 2025-01-05 to 2026-01-05
+2026-01-05T18:22:16.050236490Z [err]  2026-01-05 18:22:16,045 - app.api.endpoints - ERROR - Cointegration error for AAPL-EURUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:22:16.050242092Z [err]  2026-01-05 18:22:16,047 - app.api.endpoints - ERROR - Cointegration error for AAPL-GBPUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:22:16.107012566Z [err]  2026-01-05 18:22:16,099 - app.api.endpoints - ERROR - Cointegration error for MSFT-EURUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:22:16.107020696Z [err]  2026-01-05 18:22:16,102 - app.api.endpoints - ERROR - Cointegration error for MSFT-GBPUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:22:16.107026732Z [err]  2026-01-05 18:22:16,104 - app.api.endpoints - ERROR - Cointegration error for GOOGL-EURUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:22:16.107031487Z [err]  2026-01-05 18:22:16,106 - app.api.endpoints - ERROR - Cointegration error for GOOGL-GBPUSD=X: zero-size array to reduction operation maximum which has no identity
+2026-01-05T18:22:16.193639322Z [err]  2026-01-05 18:22:16,186 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:22:16.224619479Z [err]  2026-01-05 18:22:16,222 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:22:16.379860390Z [err]  2026-01-05 18:22:16,258 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:22:16.379865721Z [err]  2026-01-05 18:22:16,291 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:22:16.379870683Z [err]  2026-01-05 18:22:16,319 - app.services.volatility - ERROR - Error fitting GJR-GARCH model: Analytic forecasts not available for horizon > 1 when power != 2
+2026-01-05T18:22:16.379875378Z [err]  2026-01-05 18:22:16,322 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:22:16.379880431Z [err]  2026-01-05 18:22:16,323 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:22:16.379885382Z [err]  2026-01-05 18:22:16,324 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:22:16.379889795Z [err]  2026-01-05 18:22:16,325 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:22:16.379894291Z [err]  2026-01-05 18:22:16,326 - app.services.machine_learning - WARNING - HMM Regime Detection is disabled in this environment to reduce bundle size.
+2026-01-05T18:22:16.984054916Z [err]  2026-01-05 18:22:16,976 - app.api.endpoints - ERROR - Trending analysis error for AAPL: shapes (1,1) and (248,) not aligned: 1 (dim 1) != 248 (dim 0)
+2026-01-05T18:22:17.666231830Z [err]  2026-01-05 18:22:17,664 - app.api.endpoints - ERROR - Trending analysis error for MSFT: shapes (1,1) and (248,) not aligned: 1 (dim 1) != 248 (dim 0)
+2026-01-05T18:22:18.397010556Z [err]  2026-01-05 18:22:18,333 - app.api.endpoints - ERROR - Trending analysis error for GOOGL: shapes (1,1) and (248,) not aligned: 1 (dim 1) != 248 (dim 0)
+2026-01-05T18:22:19.014394674Z [err]  2026-01-05 18:22:19,004 - app.api.endpoints - ERROR - Trending analysis error for EURUSD=X: shapes (1,1) and (255,) not aligned: 1 (dim 1) != 255 (dim 0)
+2026-01-05T18:22:19.701790761Z [err]  2026-01-05 18:22:19,695 - app.api.endpoints - ERROR - Trending analysis error for GBPUSD=X: shapes (1,1) and (255,) not aligned: 1 (dim 1) != 255 (dim 0)
+2026-01-05T18:22:19.725407623Z [inf]  INFO:     100.64.0.2:54208 - "POST /api/v1/analyze HTTP/1.1" 500 Internal Server Error
+2026-01-05T18:22:19.731702854Z [err]  ERROR:    Exception in ASGI application
+2026-01-05T18:22:19.731721580Z [err]  Traceback (most recent call last):
+2026-01-05T18:22:19.731730977Z [err]    File "/app/.venv/lib/python3.13/site-packages/uvicorn/protocols/http/h11_impl.py", line 410, in run_asgi
+2026-01-05T18:22:19.731737840Z [err]      result = await app(  # type: ignore[func-returns-value]
+2026-01-05T18:22:19.731742818Z [err]               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:22:19.731749060Z [err]          self.scope, self.receive, self.send
+2026-01-05T18:22:19.731754048Z [err]          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:22:19.731759230Z [err]      )
+2026-01-05T18:22:19.731764170Z [err]      ^
+2026-01-05T18:22:19.731769364Z [err]    File "/app/.venv/lib/python3.13/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+2026-01-05T18:22:19.731774374Z [err]      return await self.app(scope, receive, send)
+2026-01-05T18:22:19.731779791Z [err]             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:22:19.731784450Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/applications.py", line 1135, in __call__
+2026-01-05T18:22:19.731812508Z [err]      await super().__call__(scope, receive, send)
+2026-01-05T18:22:19.731817278Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/applications.py", line 107, in __call__
+2026-01-05T18:22:19.731822234Z [err]      await self.middleware_stack(scope, receive, send)
+2026-01-05T18:22:19.731826936Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 186, in __call__
+2026-01-05T18:22:19.731835833Z [err]      raise exc
+2026-01-05T18:22:19.731840931Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/errors.py", line 164, in __call__
+2026-01-05T18:22:19.731846711Z [err]      await self.app(scope, receive, _send)
+2026-01-05T18:22:19.731852538Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/cors.py", line 93, in __call__
+2026-01-05T18:22:19.732808341Z [err]      await self.simple_response(scope, receive, send, request_headers=headers)
+2026-01-05T18:22:19.732816440Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/routing.py", line 290, in handle
+2026-01-05T18:22:19.732817557Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/cors.py", line 144, in simple_response
+2026-01-05T18:22:19.732826038Z [err]      await self.app(scope, receive, send)
+2026-01-05T18:22:19.732826741Z [err]      await self.app(scope, receive, send)
+2026-01-05T18:22:19.732834180Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+2026-01-05T18:22:19.732834490Z [err]      raise exc
+2026-01-05T18:22:19.732835803Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 115, in app
+2026-01-05T18:22:19.732842276Z [err]      await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+2026-01-05T18:22:19.732847389Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+2026-01-05T18:22:19.732852348Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+2026-01-05T18:22:19.732858828Z [err]      await app(scope, receive, sender)
+2026-01-05T18:22:19.732866980Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+2026-01-05T18:22:19.732875011Z [err]      await self.app(scope, receive, send)
+2026-01-05T18:22:19.732883477Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/routing.py", line 716, in __call__
+2026-01-05T18:22:19.732891541Z [err]      await self.middleware_stack(scope, receive, send)
+2026-01-05T18:22:19.732899782Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/routing.py", line 736, in app
+2026-01-05T18:22:19.732908473Z [err]      await route.handle(scope, receive, send)
+2026-01-05T18:22:19.733851757Z [err]             ~~~~~~~~~~~~~~~^
+2026-01-05T18:22:19.733852355Z [err]      await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+2026-01-05T18:22:19.733861395Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+2026-01-05T18:22:19.733862061Z [err]          value,
+2026-01-05T18:22:19.733869590Z [err]      raise exc
+2026-01-05T18:22:19.733870491Z [err]          ^^^^^^
+2026-01-05T18:22:19.733877371Z [err]    File "/app/.venv/lib/python3.13/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+2026-01-05T18:22:19.733878308Z [err]      ...<5 lines>...
+2026-01-05T18:22:19.733885440Z [err]      await app(scope, receive, sender)
+2026-01-05T18:22:19.733886244Z [err]          exclude_none=exclude_none,
+2026-01-05T18:22:19.733893055Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 101, in app
+2026-01-05T18:22:19.733894364Z [err]          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:22:19.733901132Z [err]      response = await f(request)
+2026-01-05T18:22:19.733903667Z [err]      )
+2026-01-05T18:22:19.733909765Z [err]                 ^^^^^^^^^^^^^^^^
+2026-01-05T18:22:19.733911023Z [err]      ^
+2026-01-05T18:22:19.733917775Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 377, in app
+2026-01-05T18:22:19.733918823Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/_compat/v2.py", line 197, in serialize
+2026-01-05T18:22:19.733925312Z [err]      content = await serialize_response(
+2026-01-05T18:22:19.733933607Z [err]                ^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:22:19.733941526Z [err]      ...<10 lines>...
+2026-01-05T18:22:19.733950083Z [err]      )
+2026-01-05T18:22:19.733957132Z [err]      ^
+2026-01-05T18:22:19.733964195Z [err]    File "/app/.venv/lib/python3.13/site-packages/fastapi/routing.py", line 221, in serialize_response
+2026-01-05T18:22:19.733971438Z [err]      return field.serialize(
+2026-01-05T18:22:19.734395410Z [err]      return self._type_adapter.dump_python(
+2026-01-05T18:22:19.734402511Z [err]             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+2026-01-05T18:22:19.734407509Z [err]          value,
+2026-01-05T18:22:19.734411666Z [err]          ^^^^^^
+2026-01-05T18:22:19.734416020Z [err]      ...<6 lines>...
+2026-01-05T18:22:19.734420984Z [err]          exclude_none=exclude_none,
+2026-01-05T18:22:19.734425419Z [err]          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-01-05T18:22:19.734429754Z [err]      )
+2026-01-05T18:22:19.734434222Z [err]      ^
+2026-01-05T18:22:19.734440095Z [err]    File "/app/.venv/lib/python3.13/site-packages/pydantic/type_adapter.py", line 605, in dump_python
+2026-01-05T18:22:19.734444787Z [err]      return self.serializer.to_python(
+2026-01-05T18:22:19.734449399Z [err]             ~~~~~~~~~~~~~~~~~~~~~~~~~^
+2026-01-05T18:22:19.734453796Z [err]          instance,
+2026-01-05T18:22:19.734458207Z [err]          ^^^^^^^^^
+2026-01-05T18:22:19.734462322Z [err]      ...<12 lines>...
+2026-01-05T18:22:19.734466700Z [err]          context=context,
+2026-01-05T18:22:19.734471166Z [err]          ^^^^^^^^^^^^^^^^
+2026-01-05T18:22:19.734475482Z [err]      )
+2026-01-05T18:22:19.734479514Z [err]      ^
+2026-01-05T18:22:19.734484313Z [err]  pydantic_core._pydantic_core.PydanticSerializationError: Unable to serialize unknown type: <class 'numpy.int64'>
