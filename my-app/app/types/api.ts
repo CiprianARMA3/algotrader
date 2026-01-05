@@ -1,3 +1,35 @@
+export enum TimeFrame {
+  DAILY = "1d",
+  WEEKLY = "1wk",
+  MONTHLY = "1mo",
+  HOURLY = "1h",
+  MINUTE_15 = "15m",
+}
+
+export enum AnalysisType {
+  COINTEGRATION = "cointegration",
+  PCA = "pca",
+  VOLATILITY = "volatility",
+  REGIME = "regime",
+  TRENDING = "trending",
+  MICROSTRUCTURE = "microstructure",
+  FULL_ANALYSIS = "full",
+}
+
+export interface InstrumentRequest {
+  symbols: string[];
+  timeframe: TimeFrame;
+  start_date?: string;
+  end_date?: string;
+  lookback_days: number;
+}
+
+export interface AnalysisRequest {
+  instruments: InstrumentRequest;
+  analysis_types: AnalysisType[];
+  parameters?: Record<string, any>;
+}
+
 export interface CointegrationResult {
   pair: string[];
   adf_statistic: number;
