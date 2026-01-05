@@ -170,7 +170,11 @@ class EconometricAnalyzer:
         
         for lag in lags:
             # Divide the series into chunks
+            if len(time_series) < lag:
+                continue
             chunks = len(time_series) // lag
+            if chunks == 0:
+                continue
             rs_values = []
             
             for i in range(chunks):

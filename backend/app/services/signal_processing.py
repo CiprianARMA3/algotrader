@@ -190,16 +190,17 @@ class SignalProcessor:
         Apply Kalman filter for trend estimation
         """
         values = series.dropna().values
-        n = len(values)
+        if len(values) < 2:
+            return {'filtered_trend': [], 'smoothed_trend': []}
         
-        # Initialize Kalman filter
+        # Initialize Kalman filter with explicit 2D matrices to avoid alignment issues
         kf = KalmanFilter(
-            initial_state_mean=values[0],
-            initial_state_covariance=1.0,
-            transition_matrices=[1],
-            observation_matrices=[1],
+            transition_matrices=np.array([[1]]),
+            observation_matrices=np.array([[1]]),
             observation_covariance=observation_variance,
-            transition_covariance=transition_variance
+            transition_covariance=np.array([[transition_variance]]),
+            initial_state_mean=values[0],
+            initial_state_covariance=1.0
         )
         
         # Apply filter
