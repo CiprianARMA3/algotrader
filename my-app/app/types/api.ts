@@ -115,6 +115,8 @@ export interface ExecutionRecommendations {
   risk_warnings: string[];
   position_sizing: string;
   execution_timing: string;
+  dominant_instrument?: string;
+  lead_lag_score?: number;
 }
 
 export interface AnalysisResponse {
