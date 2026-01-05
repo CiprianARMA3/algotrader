@@ -82,6 +82,16 @@ class MicrostructureResult(BaseModel):
     ofi_proxy: Optional[float] = None
     volatility_metrics: Optional[Dict[str, Any]] = None
 
+class PositionAdvice(BaseModel):
+    symbol: str
+    signal: str
+    confidence_pct: float
+    entry_price: float
+    take_profit: Optional[float] = None
+    stop_loss: Optional[float] = None
+    risk_reward_ratio: Optional[float] = None
+    estimated_hold_days: Optional[float] = None
+
 class AnalysisResponse(BaseModel):
     timestamp: datetime
     instruments: List[str]
@@ -92,3 +102,4 @@ class AnalysisResponse(BaseModel):
     trending: Optional[List[TrendingResult]] = None
     microstructure: Optional[List[MicrostructureResult]] = None
     execution_recommendations: Optional[Dict[str, Any]] = None
+    position_advice: Optional[List[PositionAdvice]] = None

@@ -21,6 +21,7 @@ from app.services.microstructure import MicrostructureAnalyzer
 from app.services.information_theory import InformationAnalyzer
 from app.services.execution import ExecutionOptimizer
 from app.services.technical_analysis import TechnicalAnalyzer
+from app.services.strategy import PositionAdvisor
 from app.core.config import settings
 
 router = APIRouter()
@@ -36,6 +37,7 @@ micro_analyzer = MicrostructureAnalyzer()
 info_analyzer = InformationAnalyzer()
 exec_optimizer = ExecutionOptimizer()
 ta_analyzer = TechnicalAnalyzer()
+position_advisor = PositionAdvisor()
 
 def convert_numpy(obj):
     if isinstance(obj, np.integer):
@@ -85,7 +87,8 @@ async def analyze_market(
             'volatility': [],
             'regimes': [],
             'trending': [],
-            'microstructure': []
+            'microstructure': [],
+            'position_advice': []
         }
         
         # Extract returns for analysis
@@ -114,6 +117,29 @@ async def analyze_market(
         
         if 'microstructure' in request.analysis_types or 'full' in request.analysis_types:
             results['microstructure'] = await perform_microstructure_analysis(data)
+
+        # Generate Position Advice
+        for symbol in data.keys():
+            try:
+                df = data[symbol]
+                ta = ta_analyzer.calculate_all_indicators(df)
+                micro = next((m for m in results['microstructure'] if m['symbol'] == symbol), {})
+                trend = next((t for t in results['trending'] if t['symbol'] == symbol), {})
+                coint = next((c for c in results['cointegration'] if symbol in c['pair']), {})
+                
+                advice = position_advisor.generate_advice(
+                    symbol=symbol,
+                    current_price=float(df['Close'].iloc[-1]),
+                    atr=ta.get('atrr_14', 0.0) or 0.0,
+                    trend_strength=trend.get('trend_strength', 0.5),
+                    vpin=micro.get('vpin_toxicity', 0.2),
+                    rsi=ta.get('rsi_14', 50.0),
+                    half_life=coint.get('half_life'),
+                    fib_levels=ta.get('fibonacci_levels')
+                )
+                results['position_advice'].append(advice)
+            except Exception as e:
+                logger.error(f"Advice error for {symbol}: {str(e)}")
         
         # Lead-Lag Analysis
         symbols = list(returns_data.keys())
