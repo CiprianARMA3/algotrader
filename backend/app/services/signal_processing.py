@@ -261,6 +261,28 @@ class SignalProcessor:
         
         return trend_strength
     
+    def calculate_instantaneous_metrics(self, series: pd.Series) -> Dict:
+        """
+        Derives Instantaneous Frequency and Amplitude using Hilbert Transform.
+        Institutional finding: HHT detects turning points faster than lagging MAs.
+        """
+        from scipy.signal import hilbert
+        
+        signal = series.dropna().values
+        if len(signal) < 10: return {}
+        
+        analytic_signal = hilbert(signal)
+        amplitude_envelope = np.abs(analytic_signal)
+        instantaneous_phase = np.unwrap(np.angle(analytic_signal))
+        instantaneous_frequency = np.diff(instantaneous_phase) / (2.0 * np.pi)
+        
+        return {
+            'inst_amplitude': amplitude_envelope.tolist(),
+            'inst_frequency': instantaneous_frequency.tolist(),
+            'frequency_mean': float(np.mean(instantaneous_frequency)),
+            'volatility_spectral': float(np.std(instantaneous_frequency))
+        }
+
     def empirical_mode_decomposition(
         self, 
         series: pd.Series,

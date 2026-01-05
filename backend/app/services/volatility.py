@@ -321,6 +321,9 @@ class VolatilityAnalyzer:
         jump_threshold = returns_abs.mean() + 3 * returns_abs.std()
         jump_intensity = np.sum(returns_abs > jump_threshold) / len(returns_abs)
         
+        # Rough Volatility (Hurst of Volatility)
+        roughness = self.estimate_rough_volatility(returns_clean)
+        
         return {
             'short_term_vol': short_term_vol,
             'long_term_vol': long_term_vol,
@@ -328,7 +331,55 @@ class VolatilityAnalyzer:
             'volatility_skew': vol_skew,
             'volatility_persistence': persistence,
             'jump_intensity': jump_intensity,
+            'roughness_exponent': roughness,
             'current_realized_volatility': returns_clean.std() * np.sqrt(252),
             'min_volatility': returns_clean.rolling(window).std().min() * np.sqrt(252),
             'max_volatility': returns_clean.rolling(window).std().max() * np.sqrt(252)
         }
+
+    def estimate_rough_volatility(self, returns: pd.Series) -> float:
+        """
+        Estimates the 'Roughness' (Hurst Exponent) of the volatility process.
+        Institutional finding: H ~ 0.1 (Rough Volatility).
+        """
+        # Calculate log-volatility proxy
+        vol_proxy = returns.abs().rolling(window=5).mean().dropna()
+        if len(vol_proxy) < 50: return 0.5
+        
+        log_vol = np.log(vol_proxy + 1e-9)
+        
+        # Simple Hurst estimation via rescaled range or log-log regression of increments
+        lags = range(2, 20)
+        std_diffs = []
+        for lag in lags:
+            diffs = log_vol.diff(lag).dropna()
+            if not diffs.empty:
+                std_diffs.append(np.std(diffs))
+            else:
+                std_diffs.append(1e-9)
+        
+        # slope of log(lag) vs log(std_diff) gives Hurst H
+        h, _ = np.polyfit(np.log(list(lags)), np.log(std_diffs), 1)
+        return float(h)
+
+    def calculate_realized_kernel(self, returns: pd.Series) -> float:
+        """
+        Realized Kernel estimator (Tukey-Hanning) - robust to microstructure noise.
+        """
+        x = returns.values
+        n = len(x)
+        # Parzen kernel weights
+        def kernel_weight(h, H):
+            x = h / H
+            if 0 <= x <= 0.5:
+                return 1 - 6*x**2 + 6*x**3
+            elif 0.5 < x <= 1:
+                return 2*(1-x)**3
+            return 0
+
+        # Auto-covariances
+        gamma = lambda h: np.sum(x[h:] * x[:n-h])
+        
+        H = int(np.sqrt(n)) # Bandwidth selection proxy
+        rk = gamma(0) + 2 * np.sum([kernel_weight(h, H) * gamma(h) for h in range(1, H+1)])
+        return float(rk * 252) # Annualized

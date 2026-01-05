@@ -58,6 +58,7 @@ class VolatilityResult(BaseModel):
     term_structure: Optional[float] = None
     volatility_skew: Optional[float] = None
     jump_intensity: Optional[float] = None
+    roughness_exponent: Optional[float] = None
 
 class RegimeResult(BaseModel):
     symbol: str
@@ -70,12 +71,15 @@ class TrendingResult(BaseModel):
     hurst_exponent: Optional[float] = None
     trend_strength: Optional[float] = None
     is_stationary: Optional[bool] = None
+    spectral_metrics: Optional[Dict[str, Any]] = None
 
 class MicrostructureResult(BaseModel):
     symbol: str
     vpin_toxicity: Optional[float] = None
     kyles_lambda: Optional[float] = None
     amihud_illiquidity: Optional[float] = None
+    pin_mle: Optional[float] = None
+    ofi_proxy: Optional[float] = None
     volatility_metrics: Optional[Dict[str, Any]] = None
 
 class AnalysisResponse(BaseModel):

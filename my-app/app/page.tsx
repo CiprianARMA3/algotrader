@@ -8,6 +8,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || '';
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
+  const [marketStatus, setMarketStatus] = useState<any>(null);
   const [analysisData, setAnalysisData] = useState<AnalysisResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([
@@ -15,6 +16,18 @@ export default function Home() {
   ]);
   const [timeframe, setTimeframe] = useState<string>('1d');
   const [lookbackDays, setLookbackDays] = useState<number>(365);
+
+  const fetchMarketStatus = async () => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/v1/market-status`);
+      if (response.ok) {
+        const data = await response.json();
+        setMarketStatus(data);
+      }
+    } catch (err) {
+      console.error('Market status error:', err);
+    }
+  };
 
   const performAnalysis = async () => {
     setIsLoading(true);
@@ -48,6 +61,8 @@ export default function Home() {
 
       const data: AnalysisResponse = await response.json();
       setAnalysisData(data);
+      // Refresh market status after analysis
+      fetchMarketStatus();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Analysis error:', err);
@@ -56,8 +71,19 @@ export default function Home() {
     }
   };
 
+  const quickAnalyze = async (symbol: string) => {
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/v1/quick-analysis/${symbol}?timeframe=${timeframe}&lookback_days=${lookbackDays}`);
+      const data = await response.json();
+      alert(`QUICK_SCAN: ${symbol}\nPrice: ${data.basic_metrics.current_price}\nVolatility: ${(data.basic_metrics.volatility * 100).toFixed(2)}%\nTrend: ${(data.basic_metrics.trend_strength * 100).toFixed(0)}%`);
+    } catch (err) {
+      console.error('Quick analysis error:', err);
+    }
+  };
+
   useEffect(() => {
     performAnalysis();
+    fetchMarketStatus();
   }, []);
 
   return (
@@ -73,9 +99,10 @@ export default function Home() {
               Quantitative Analysis & Risk Modeling Framework
             </p>
           </div>
-          <div className="text-right text-xs text-gray-600">
+          <div className="text-right text-[10px] text-gray-600 space-y-1 font-bold uppercase tracking-tighter">
             <div>STATUS: {isLoading ? 'PROCESSING' : 'READY'}</div>
-            <div>CONN: {BACKEND_URL ? 'REMOTE' : 'LOCAL'}</div>
+            <div>BREADTH: {marketStatus?.market_breadth?.advance_decline_ratio?.toFixed(2) || '0.00'} A/D</div>
+            <div>VIX: {marketStatus?.market_indicators?.VIX?.current?.toFixed(2) || '0.00'}</div>
             <div>TS: {new Date().toISOString()}</div>
           </div>
         </header>
@@ -91,18 +118,29 @@ export default function Home() {
                 {selectedInstruments.map((symbol) => (
                   <span
                     key={symbol}
-                    className="px-3 py-1 bg-white text-black text-xs font-bold flex items-center gap-2 hover:bg-gray-200 transition-colors"
+                    className="px-3 py-1 bg-white text-black text-xs font-bold flex items-center gap-2 hover:bg-gray-200 transition-colors cursor-pointer"
+                    onClick={() => quickAnalyze(symbol)}
+                    title="Click for Quick Scan"
                   >
                     {symbol}
                     <button
-                      onClick={() => setSelectedInstruments(prev => prev.filter(s => s !== symbol))}
-                      className="hover:text-red-600 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedInstruments(prev => prev.filter(s => s !== symbol));
+                      }}
+                      className="hover:text-red-600 transition-colors ml-1"
                     >
                       ×
                     </button>
                   </span>
                 ))}
-                <button className="px-3 py-1 border border-dashed border-gray-700 text-gray-500 text-xs hover:border-white hover:text-white transition-all">
+                <button 
+                  onClick={() => {
+                    const sym = prompt('Enter symbol (e.g. BTC-USD):');
+                    if (sym) setSelectedInstruments(prev => [...prev, sym.toUpperCase()]);
+                  }}
+                  className="px-3 py-1 border border-dashed border-gray-700 text-gray-500 text-xs hover:border-white hover:text-white transition-all"
+                >
                   + ADD_SYMBOL
                 </button>
               </div>
