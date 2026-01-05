@@ -15,6 +15,10 @@ class EconometricAnalyzer:
     def __init__(self):
         self.pca_model = None
         
+from statsmodels.tsa.stattools import adfuller, kpss, coint
+
+# ... (inside EconometricAnalyzer)
+
     def calculate_cointegration(
         self, 
         series1: pd.Series, 
@@ -22,9 +26,8 @@ class EconometricAnalyzer:
         significance_level: float = 0.05
     ) -> Dict:
         """
-        Perform Engle-Granger cointegration test with robustness checks.
+        Perform Engle-Granger cointegration test with dual stationarity verification (ADF + KPSS).
         """
-        # Align series and check for constants/empty
         aligned = pd.concat([series1, series2], axis=1).dropna()
         if len(aligned) < 20 or aligned.iloc[:, 0].std() == 0 or aligned.iloc[:, 1].std() == 0:
             return {'cointegrated': False}
@@ -33,21 +36,27 @@ class EconometricAnalyzer:
         y = aligned.iloc[:, 1].values
         
         try:
-            # Perform cointegration test
+            # Cointegration check
             score, pvalue, _ = coint(x, y)
             
-            # Calculate hedge ratio using OLS
             hedge_ratio = np.polyfit(x, y, 1)[0]
             spread = y - hedge_ratio * x
             
-            # Test spread for stationarity (ADF)
-            adf_result = adfuller(spread)
+            # 1. ADF (Null: Unit Root / Non-Stationary)
+            adf_p = adfuller(spread)[1]
+            
+            # 2. KPSS (Null: Stationary)
+            kpss_p = kpss(spread, regression='c', nlags="auto")[1]
+            
+            # Robust Stationarity: ADF rejects Non-Stationary AND KPSS fails to reject Stationary
+            is_robust = (adf_p < 0.05) and (kpss_p > 0.05)
             
             return {
-                'adf_statistic': float(adf_result[0]),
-                'adf_pvalue': float(adf_result[1]),
+                'adf_pvalue': float(adf_p),
+                'kpss_pvalue': float(kpss_p),
                 'cointegration_pvalue': float(pvalue),
-                'cointegrated': pvalue < significance_level,
+                'cointegrated': bool(pvalue < significance_level),
+                'robust_stationarity': bool(is_robust),
                 'hedge_ratio': float(hedge_ratio),
                 'spread_mean': float(np.mean(spread)),
                 'spread_std': float(np.std(spread))

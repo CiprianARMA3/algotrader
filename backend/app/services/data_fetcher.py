@@ -53,10 +53,20 @@ class DataFetcher:
                 if hist.empty:
                     logger.warning(f"No data found for {symbol}")
                     continue
+
+                # --- Professional Data Cleaning Layer ---
+                # 1. Fill missing values using linear interpolation (standard institutional practice)
+                hist = hist.interpolate(method='linear', limit_direction='both')
                 
-                # Calculate returns and log returns
-                hist['Returns'] = hist['Close'].pct_change()
-                hist['Log_Returns'] = np.log(hist['Close'] / hist['Close'].shift(1))
+                # 2. Outlier Detection (Z-Score > 4) to prevent "Flash Crash" data errors from skewing models
+                for col in ['Close', 'Open', 'High', 'Low']:
+                    z_scores = (hist[col] - hist[col].mean()) / (hist[col].std() + 1e-9)
+                    hist.loc[z_scores.abs() > 4, col] = np.nan
+                    hist[col] = hist[col].fillna(method='ffill').fillna(method='bfill')
+
+                # 3. Accurate return calculation
+                hist['Returns'] = hist['Close'].pct_change().fillna(0)
+                hist['Log_Returns'] = np.log(hist['Close'] / hist['Close'].shift(1)).fillna(0)
                 hist['Volume'] = hist['Volume'].fillna(0)
                 
                 data_dict[symbol] = hist

@@ -20,6 +20,7 @@ from app.services.machine_learning import MachineLearningAnalyzer
 from app.services.microstructure import MicrostructureAnalyzer
 from app.services.information_theory import InformationAnalyzer
 from app.services.execution import ExecutionOptimizer
+from app.services.technical_analysis import TechnicalAnalyzer
 from app.core.config import settings
 
 router = APIRouter()
@@ -34,6 +35,7 @@ ml_analyzer = MachineLearningAnalyzer()
 micro_analyzer = MicrostructureAnalyzer()
 info_analyzer = InformationAnalyzer()
 exec_optimizer = ExecutionOptimizer()
+ta_analyzer = TechnicalAnalyzer()
 
 def convert_numpy(obj):
     if isinstance(obj, np.integer):
@@ -287,6 +289,50 @@ def generate_execution_recommendations(results: Dict) -> Dict:
             recommendations['volatility_environment'] = 'low'
     return recommendations
 
+@router.get("/technical-suite/{symbol}")
+async def get_technical_suite(symbol: str, timeframe: str = "1d", lookback_days: int = 365):
+    """
+    Returns 100+ technical indicators, momentum oscillators, and volume metrics.
+    """
+    try:
+        data = await data_fetcher.fetch_data(symbols=[symbol], timeframe=timeframe, lookback_days=lookback_days)
+        if symbol not in data:
+            raise HTTPException(status_code=404, detail="Symbol not found")
+        
+        indicators = ta_analyzer.calculate_all_indicators(data[symbol])
+        return {"symbol": symbol, "timestamp": datetime.utcnow(), "indicators": indicators}
+    except Exception as e:
+        logger.error(f"Suite error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/quick-analysis/{symbol}")
+async def quick_analysis(symbol: str, timeframe: str = "1d", lookback_days: int = 365):
+    try:
+        data = await data_fetcher.fetch_data(symbols=[symbol], timeframe=timeframe, lookback_days=lookback_days)
+        if symbol not in data: raise HTTPException(status_code=404, detail=f"No data found for {symbol}")
+        df = data[symbol]
+        returns = df['Returns'].dropna() if 'Returns' in df.columns else df['Close'].pct_change().dropna()
+        
+        # Comprehensive TA for the quick view
+        ta_data = ta_analyzer.calculate_all_indicators(df)
+        
+        basic_metrics = {
+            "current_price": float(df['Close'].iloc[-1]), 
+            "volatility": float(returns.std() * np.sqrt(252)), 
+            "trend_strength": float(signal_processor.calculate_trend_strength(df['Close']).iloc[-1]),
+            "rsi": ta_data.get('rsi_14'),
+            "macd": ta_data.get('macdh_12_26_9')
+        }
+        return {
+            "symbol": symbol, 
+            "timestamp": datetime.utcnow(), 
+            "basic_metrics": basic_metrics,
+            "core_indicators": ta_data
+        }
+    except Exception as e:
+        logger.error(f"Quick analysis error for {symbol}: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/instruments")
 async def get_available_instruments():
     return {"forex": settings.FOREX_PAIRS, "stocks": settings.STOCKS, "total_count": len(settings.FOREX_PAIRS) + len(settings.STOCKS)}
@@ -298,17 +344,4 @@ async def get_market_status():
         return {"timestamp": datetime.utcnow(), "market_indicators": market_data}
     except Exception as e:
         logger.error(f"Market status error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.get("/quick-analysis/{symbol}")
-async def quick_analysis(symbol: str, timeframe: str = "1d", lookback_days: int = 365):
-    try:
-        data = await data_fetcher.fetch_data(symbols=[symbol], timeframe=timeframe, lookback_days=lookback_days)
-        if symbol not in data: raise HTTPException(status_code=404, detail=f"No data found for {symbol}")
-        df = data[symbol]
-        returns = df['Returns'].dropna() if 'Returns' in df.columns else df['Close'].pct_change().dropna()
-        basic_metrics = {"current_price": float(df['Close'].iloc[-1]), "volatility": float(returns.std() * np.sqrt(252)), "trend_strength": float(signal_processor.calculate_trend_strength(df['Close']).iloc[-1])}
-        return {"symbol": symbol, "timestamp": datetime.utcnow(), "basic_metrics": basic_metrics}
-    except Exception as e:
-        logger.error(f"Quick analysis error for {symbol}: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
