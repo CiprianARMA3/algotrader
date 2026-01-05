@@ -1,0 +1,11 @@
+{
+  "name": "algotrader-root",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix my-app",
+    "build": "npm run build --prefix my-app",
+    "start": "npm run start --prefix my-app",
+    "install": "npm install --prefix my-app"
+  }
+}
