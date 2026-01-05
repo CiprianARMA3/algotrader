@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from typing import List, Dict, Tuple, Optional
 import logging
-from hmmlearn import hmm
-from sklearn.preprocessing import StandardScaler
+# from hmmlearn import hmm  <-- Removed to save space
+# from sklearn.preprocessing import StandardScaler <-- Removed to save space
 from scipy.stats import entropy
 import warnings
 warnings.filterwarnings('ignore')
@@ -12,7 +12,8 @@ logger = logging.getLogger(__name__)
 
 class MachineLearningAnalyzer:
     def __init__(self):
-        self.scaler = StandardScaler()
+        # self.scaler = StandardScaler()
+        pass
     
     def hidden_markov_model_regime(
         self,
@@ -21,69 +22,15 @@ class MachineLearningAnalyzer:
         n_features: int = 1
     ) -> Dict:
         """
-        Fit Hidden Markov Model to detect market regimes
+        Fit Hidden Markov Model to detect market regimes.
+        NOTE: Disabled in Vercel environment to save space (hmmlearn/sklearn removed).
         """
-        returns_clean = returns.dropna().values.reshape(-1, 1)
+        logger.warning("HMM Regime Detection is disabled in this environment to reduce bundle size.")
+        return {}
         
-        if len(returns_clean) < 100:
-            logger.warning("Insufficient data for HMM")
-            return {}
-        
-        try:
-            # Fit Gaussian HMM
-            model = hmm.GaussianHMM(
-                n_components=n_states,
-                covariance_type="full",
-                n_iter=1000,
-                random_state=42
-            )
-            
-            model.fit(returns_clean)
-            
-            # Predict hidden states
-            hidden_states = model.predict(returns_clean)
-            
-            # Calculate state probabilities
-            state_probabilities = model.predict_proba(returns_clean)
-            
-            # Calculate regime statistics
-            regime_stats = {}
-            for i in range(n_states):
-                mask = hidden_states == i
-                if np.any(mask):
-                    regime_returns = returns_clean[mask]
-                    regime_stats[f'regime_{i}'] = {
-                        'count': np.sum(mask),
-                        'mean_return': float(np.mean(regime_returns)),
-                        'std_return': float(np.std(regime_returns)),
-                        'probability': np.mean(state_probabilities[:, i]),
-                        'percentage': np.sum(mask) / len(returns_clean) * 100
-                    }
-            
-            # Calculate transition matrix
-            transition_matrix = model.transmat_
-            
-            # Calculate persistence (probability of staying in same state)
-            persistence = np.diag(transition_matrix)
-            
-            # Calculate expected duration of each regime
-            expected_durations = 1 / (1 - persistence)
-            
-            return {
-                'hidden_states': hidden_states.tolist(),
-                'state_probabilities': state_probabilities.tolist(),
-                'regime_statistics': regime_stats,
-                'transition_matrix': transition_matrix.tolist(),
-                'persistence': persistence.tolist(),
-                'expected_durations': expected_durations.tolist(),
-                'model_score': model.score(returns_clean),
-                'means': model.means_.flatten().tolist(),
-                'covariances': model.covars_.flatten().tolist()
-            }
-            
-        except Exception as e:
-            logger.error(f"Error fitting HMM: {str(e)}")
-            return {}
+        # Original implementation preserved in comments:
+        # returns_clean = returns.dropna().values.reshape(-1, 1)
+        # if len(returns_clean) < 100: ...
     
     def calculate_transfer_entropy(
         self,

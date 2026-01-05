@@ -3,7 +3,6 @@ import pandas as pd
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller, kpss, coint
 from statsmodels.tsa.vector_ar.vecm import coint_johansen
-from sklearn.decomposition import PCA
 from typing import List, Dict, Tuple, Optional
 import logging
 from scipy import stats
@@ -113,26 +112,41 @@ class EconometricAnalyzer:
         n_components: int = 5
     ) -> Dict:
         """
-        Perform PCA on returns data
+        Perform PCA on returns data using numpy (SVD)
         """
         # Standardize returns
-        returns_standardized = (returns_data - returns_data.mean()) / returns_data.std()
+        returns_mean = returns_data.mean()
+        returns_std = returns_data.std()
+        returns_standardized = (returns_data - returns_mean) / returns_std
         returns_standardized = returns_standardized.dropna()
+        X = returns_standardized.values
         
-        # Perform PCA
-        self.pca_model = PCA(n_components=n_components)
-        principal_components = self.pca_model.fit_transform(returns_standardized)
+        # Perform PCA via SVD
+        # X = U * S * Vt
+        U, S, Vt = np.linalg.svd(X, full_matrices=False)
         
-        # Calculate eigenportfolios (weights)
-        eigenportfolios = self.pca_model.components_.T
+        # Components (eigenvectors of covariance matrix) are rows of Vt
+        components = Vt[:n_components]
+        
+        # Projected data (Principal Components)
+        principal_components = X @ components.T
         
         # Explained variance
-        explained_variance = self.pca_model.explained_variance_ratio_
-        cumulative_variance = np.cumsum(explained_variance)
+        explained_variance = (S ** 2) / (len(X) - 1)
+        total_variance = explained_variance.sum()
+        explained_variance_ratio = explained_variance / total_variance
+        
+        # Limit to n_components
+        explained_variance_ratio = explained_variance_ratio[:n_components]
+        cumulative_variance = np.cumsum(explained_variance_ratio)
+        eigenvalues = explained_variance[:n_components]
+        
+        # Eigenportfolios (weights) - same as components
+        eigenportfolios = components.T
         
         # Calculate factor exposures
         factor_exposures = pd.DataFrame(
-            self.pca_model.components_.T,
+            components.T,
             index=returns_data.columns,
             columns=[f'PC{i+1}' for i in range(n_components)]
         )
@@ -140,11 +154,11 @@ class EconometricAnalyzer:
         return {
             'principal_components': principal_components.tolist(),
             'eigenportfolios': eigenportfolios.tolist(),
-            'explained_variance': explained_variance.tolist(),
+            'explained_variance': explained_variance_ratio.tolist(),
             'cumulative_variance': cumulative_variance.tolist(),
-            'eigenvalues': self.pca_model.explained_variance_.tolist(),
+            'eigenvalues': eigenvalues.tolist(),
             'factor_exposures': factor_exposures.to_dict(),
-            'components': self.pca_model.components_.tolist()
+            'components': components.tolist()
         }
     
     def calculate_hurst_exponent(self, time_series: np.ndarray, max_lag: int = 50) -> float:
