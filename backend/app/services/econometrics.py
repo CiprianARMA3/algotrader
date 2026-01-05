@@ -15,10 +15,6 @@ class EconometricAnalyzer:
     def __init__(self):
         self.pca_model = None
         
-from statsmodels.tsa.stattools import adfuller, kpss, coint
-
-# ... (inside EconometricAnalyzer)
-
     def calculate_cointegration(
         self, 
         series1: pd.Series, 
@@ -97,7 +93,52 @@ from statsmodels.tsa.stattools import adfuller, kpss, coint
             'equilibrium_mu': float(mu),
             'half_life': float(min(np.log(2) / kappa, 365.0))
         }
-    
+
+    def johansen_cointegration_test(
+        self, 
+        data: pd.DataFrame, 
+        k_ar_diff: int = 1
+    ) -> Dict:
+        """
+        Perform Johansen cointegration test for multiple time series
+        """
+        try:
+            data_clean = data.dropna()
+            if data_clean.shape[1] < 2:
+                return {}
+                
+            result = coint_johansen(data_clean, det_order=0, k_ar_diff=k_ar_diff)
+            
+            return {
+                'trace_stats': result.lr1.tolist(),
+                'trace_crit': result.cvt.tolist(),
+                'max_eig_stats': result.lr2.tolist(),
+                'max_eig_crit': result.cvm.tolist(),
+                'eigenvalues': result.eig.tolist()
+            }
+        except Exception as e:
+            logger.error(f"Johansen test error: {str(e)}")
+            return {}
+
+    def calculate_copula_dependence(self, series1: pd.Series, series2: pd.Series) -> Dict:
+        """
+        Captures non-linear tail dependence using empirical copulas
+        """
+        aligned = pd.concat([series1, series2], axis=1).dropna()
+        u = stats.rankdata(aligned.iloc[:, 0]) / (len(aligned) + 1)
+        v = stats.rankdata(aligned.iloc[:, 1]) / (len(aligned) + 1)
+        
+        # Tail dependence (Lower and Upper)
+        threshold = 0.1
+        lower_tail = np.mean((u < threshold) & (v < threshold)) / threshold
+        upper_tail = np.mean((u > 1 - threshold) & (v > 1 - threshold)) / threshold
+        
+        return {
+            'kendall_tau': float(stats.kendalltau(aligned.iloc[:, 0], aligned.iloc[:, 1])[0]),
+            'lower_tail_dependence': float(lower_tail),
+            'upper_tail_dependence': float(upper_tail)
+        }
+
     def perform_pca_analysis(
         self, 
         returns_data: pd.DataFrame,
@@ -184,67 +225,7 @@ from statsmodels.tsa.stattools import adfuller, kpss, coint
         
         if len(tau) > 1:
             # Calculate Hurst exponent
-            hurst = np.polyfit(np.log(lags[:len(tau)]), tau, 1)[0]
-            return hurst
+            hurst = np.polyfit(np.log(list(lags[:len(tau)])), tau, 1)[0]
+            return float(hurst)
         else:
             return 0.5  # Return 0.5 for random walk
-    
-    def calculate_orstein_uhlenbeck_params(self, spread: np.ndarray) -> Dict:
-        """
-        Estimate Ornstein-Uhlenbeck process parameters
-        """
-        spread_lag = np.roll(spread, 1)
-        spread_lag[0] = spread_lag[1]
-        spread_ret = spread - spread_lag
-        
-        # Add constant for OLS
-        X = sm.add_constant(spread_lag)
-        model = sm.OLS(spread_ret, X)
-        res = model.fit()
-        
-        # OU parameters
-        theta = -res.params[1]  # Mean reversion speed
-        mu = res.params[0] / theta if theta > 0 else np.mean(spread)  # Long-term mean
-        sigma = np.std(res.resid)  # Volatility
-        
-        # Calculate half-life
-        half_life = np.log(2) / theta if theta > 0 else np.nan
-        
-        return {
-            'theta': theta,
-            'mu': mu,
-            'sigma': sigma,
-            'half_life': half_life,
-            'residuals': res.resid.tolist()
-        }
-    
-    def calculate_copula_dependence(self, returns1: np.ndarray, returns2: np.ndarray) -> Dict:
-        """
-        Calculate copula-based dependence measures
-        """
-        from scipy.stats import kendalltau, spearmanr
-        
-        # Rank correlation measures
-        kendall_tau, kendall_p = kendalltau(returns1, returns2)
-        spearman_rho, spearman_p = spearmanr(returns1, returns2)
-        
-        # Empirical copula
-        n = len(returns1)
-        u = stats.rankdata(returns1) / (n + 1)
-        v = stats.rankdata(returns2) / (n + 1)
-        
-        # Calculate tail dependence coefficients
-        threshold = 0.1
-        lower_tail = np.mean((u < threshold) & (v < threshold)) / threshold
-        upper_tail = np.mean((u > 1 - threshold) & (v > 1 - threshold)) / threshold
-        
-        return {
-            'kendall_tau': kendall_tau,
-            'spearman_rho': spearman_rho,
-            'lower_tail_dependence': lower_tail,
-            'upper_tail_dependence': upper_tail,
-            'empirical_copula': {
-                'u': u.tolist(),
-                'v': v.tolist()
-            }
-        }
