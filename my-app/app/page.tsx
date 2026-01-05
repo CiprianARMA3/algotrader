@@ -43,7 +43,8 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`API error (${response.status}): ${errorText || response.statusText}`);
       }
 
       const data: AnalysisResponse = await response.json();

@@ -57,10 +57,11 @@ class VolatilityResult(BaseModel):
 
 class RegimeResult(BaseModel):
     symbol: str
-    regimes: List[int]
-    probabilities: List[List[float]]
-    regime_means: List[float]
-    regime_volatilities: List[float]
+    regimes: Optional[List[int]] = None
+    probabilities: Optional[List[List[float]]] = None
+    regime_means: Optional[List[float]] = None
+    regime_volatilities: Optional[List[float]] = None
+    regime_statistics: Optional[Dict[str, Any]] = None
 
 class TrendingResult(BaseModel):
     symbol: str
