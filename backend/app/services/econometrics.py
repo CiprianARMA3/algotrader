@@ -22,121 +22,71 @@ class EconometricAnalyzer:
         significance_level: float = 0.05
     ) -> Dict:
         """
-        Perform Engle-Granger cointegration test
+        Perform Engle-Granger cointegration test with robustness checks.
         """
-        # Align series
+        # Align series and check for constants/empty
         aligned = pd.concat([series1, series2], axis=1).dropna()
+        if len(aligned) < 20 or aligned.iloc[:, 0].std() == 0 or aligned.iloc[:, 1].std() == 0:
+            return {'cointegrated': False}
+            
         x = aligned.iloc[:, 0].values
         y = aligned.iloc[:, 1].values
         
-        # Perform cointegration test
-        score, pvalue, _ = coint(x, y)
-        
-        # Calculate hedge ratio using OLS
-        hedge_ratio = np.polyfit(x, y, 1)[0]
-        
-        # Create spread
-        spread = y - hedge_ratio * x
-        
-        # Test spread for stationarity
-        adf_result = adfuller(spread)
-        kpss_result = kpss(spread, regression='c')
-        
-        # Calculate half-life of mean reversion
-        spread_lag = np.roll(spread, 1)
-        spread_lag[0] = spread_lag[1]
-        spread_ret = spread - spread_lag
-        spread_lag2 = sm.add_constant(spread_lag)
-        model = sm.OLS(spread_ret, spread_lag2)
-        res = model.fit()
-        half_life = -np.log(2) / res.params[1] if res.params[1] < 0 else np.nan
-        
-        # Calculate Hurst exponent
-        hurst = self.calculate_hurst_exponent(spread)
-        
-        return {
-            'adf_statistic': adf_result[0],
-            'adf_pvalue': adf_result[1],
-            'kpss_statistic': kpss_result[0],
-            'kpss_pvalue': kpss_result[1],
-            'cointegration_pvalue': pvalue,
-            'cointegrated': pvalue < significance_level,
-            'hedge_ratio': hedge_ratio,
-            'half_life': half_life,
-            'hurst_exponent': hurst,
-            'spread_mean': np.mean(spread),
-            'spread_std': np.std(spread)
-        }
-    
-    def johansen_cointegration_test(
-        self, 
-        data: pd.DataFrame, 
-        k_ar_diff: int = 1
-    ) -> Dict:
-        """
-        Perform Johansen cointegration test for multiple time series
-        """
         try:
-            data_clean = data.dropna()
-            if data_clean.shape[1] < 2:
-                return {}
-                
-            result = coint_johansen(data_clean, det_order=0, k_ar_diff=k_ar_diff)
+            # Perform cointegration test
+            score, pvalue, _ = coint(x, y)
+            
+            # Calculate hedge ratio using OLS
+            hedge_ratio = np.polyfit(x, y, 1)[0]
+            spread = y - hedge_ratio * x
+            
+            # Test spread for stationarity (ADF)
+            adf_result = adfuller(spread)
             
             return {
-                'trace_stats': result.lr1.tolist(),
-                'trace_crit': result.cvt.tolist(),
-                'max_eig_stats': result.lr2.tolist(),
-                'max_eig_crit': result.cvm.tolist(),
-                'eigenvalues': result.eig.tolist()
+                'adf_statistic': float(adf_result[0]),
+                'adf_pvalue': float(adf_result[1]),
+                'cointegration_pvalue': float(pvalue),
+                'cointegrated': pvalue < significance_level,
+                'hedge_ratio': float(hedge_ratio),
+                'spread_mean': float(np.mean(spread)),
+                'spread_std': float(np.std(spread))
             }
         except Exception as e:
-            logger.error(f"Johansen test error: {str(e)}")
-            return {}
-
-    def calculate_copula_dependence(self, series1: pd.Series, series2: pd.Series) -> Dict:
-        """
-        Captures non-linear tail dependence using empirical copulas
-        """
-        aligned = pd.concat([series1, series2], axis=1).dropna()
-        u = stats.rankdata(aligned.iloc[:, 0]) / (len(aligned) + 1)
-        v = stats.rankdata(aligned.iloc[:, 1]) / (len(aligned) + 1)
-        
-        # Tail dependence (Lower and Upper)
-        threshold = 0.1
-        lower_tail = np.mean((u < threshold) & (v < threshold)) / threshold
-        upper_tail = np.mean((u > 1 - threshold) & (v > 1 - threshold)) / threshold
-        
-        return {
-            'kendall_tau': float(stats.kendalltau(aligned.iloc[:, 0], aligned.iloc[:, 1])[0]),
-            'lower_tail_dependence': float(lower_tail),
-            'upper_tail_dependence': float(upper_tail)
-        }
+            logger.error(f"Coint error: {str(e)}")
+            return {'cointegrated': False}
 
     def estimate_ou_process(self, spread: pd.Series) -> Dict:
         """
-        Estimates Ornstein-Uhlenbeck parameters (Mean Reversion Speed)
-        dX_t = kappa(mu - X_t)dt + sigma*dW_t
+        Estimates Ornstein-Uhlenbeck parameters with stability checks.
         """
-        y = spread.values
-        x = spread.shift(1).fillna(method='bfill').values
+        if len(spread) < 20: return {}
         
-        # Discrete time regression: y_t = a + b*x_{t-1} + e
-        # kappa = -ln(b)/delta_t
+        # y_t = a + b * y_{t-1} + e
+        y = spread.values[1:]
+        x = spread.values[:-1]
+        
         res = stats.linregress(x, y)
         b = res.slope
         a = res.intercept
         
-        dt = 1/252 # Daily data
-        kappa = -np.log(max(b, 1e-9)) / dt
+        dt = 1/252
+        
+        # Stability check: if b >= 1, the process is not mean-reverting (it's a random walk or explosive)
+        if b >= 1.0 or b <= 0:
+            return {
+                'kappa_reversion_speed': 0.0,
+                'equilibrium_mu': float(np.mean(spread)),
+                'half_life': 999.0
+            }
+            
+        kappa = -np.log(b) / dt
         mu = a / (1 - b)
-        sigma = np.std(y - (a + b*x)) / np.sqrt(dt)
         
         return {
             'kappa_reversion_speed': float(kappa),
             'equilibrium_mu': float(mu),
-            'volatility_sigma': float(sigma),
-            'half_life': float(np.log(2) / kappa) if kappa > 0 else None
+            'half_life': float(min(np.log(2) / kappa, 365.0))
         }
     
     def perform_pca_analysis(

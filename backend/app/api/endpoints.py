@@ -119,8 +119,13 @@ async def analyze_market(
         if len(symbols) >= 2:
             te = info_analyzer.calculate_transfer_entropy(returns_data[symbols[0]], returns_data[symbols[1]])
             lead_lag_data = {
-                'lead_lag_score': te,
-                'dominant_instrument': symbols[0] if te > 0.1 else symbols[1]
+                'lead_lag_score': float(te),
+                'dominant_instrument': symbols[0] if te > 0 else symbols[1]
+            }
+        else:
+            lead_lag_data = {
+                'lead_lag_score': 0.0,
+                'dominant_instrument': symbols[0] if symbols else 'NONE'
             }
         
         # Execution Optimization (Almgren-Chriss & Avellaneda-Stoikov)

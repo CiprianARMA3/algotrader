@@ -10,34 +10,37 @@ class MicrostructureAnalyzer:
     def __init__(self):
         pass
 
-    def calculate_vpin(self, df: pd.DataFrame, n_buckets: int = 50) -> float:
+    def calculate_vpin(self, df: pd.DataFrame, n_buckets: int = 20) -> float:
         """
         Volume-Synchronized Probability of Informed Trading.
-        Detects 'Toxic Flow' by looking at volume imbalance in equal-sized buckets.
+        Improved for daily data by reducing buckets and using price volatility.
         """
-        if df.empty or 'Volume' not in df.columns:
+        if df.empty or 'Volume' not in df.columns or len(df) < n_buckets:
             return 0.0
             
         total_vol = df['Volume'].sum()
         if total_vol == 0: return 0.0
         bucket_size = total_vol / n_buckets
         
-        # Approximate buy/sell volume using tick rule
+        # Use price change and EWM to determine side more robustly
         df = df.copy()
         df['Price_Diff'] = df['Close'].diff()
-        df['Side'] = np.sign(df['Price_Diff']).replace(0, method='ffill')
+        # Normalizing price change to get a "probability" of side
+        vol = df['Price_Diff'].rolling(window=10).std().fillna(method='bfill')
+        df['Side_Prob'] = (df['Price_Diff'] / (vol + 1e-9)).apply(lambda x: 2 * (1 / (1 + np.exp(-x))) - 1)
+        
+        df['Buy_Vol'] = df['Volume'] * (df['Side_Prob'].clip(0, 1))
+        df['Sell_Vol'] = df['Volume'] * (df['Side_Prob'].clip(-1, 0).abs())
         
         # Aggregate into volume buckets
         df['Cum_Vol'] = df['Volume'].cumsum()
-        df['Bucket'] = (df['Cum_Vol'] / bucket_size).astype(int)
+        df['Bucket'] = (df['Cum_Vol'] / bucket_size).astype(int).clip(0, n_buckets - 1)
         
-        buckets = df.groupby('Bucket').apply(
-            lambda x: np.abs(
-                x[x['Side'] > 0]['Volume'].sum() - x[x['Side'] < 0]['Volume'].sum()
-            )
-        )
+        bucket_stats = df.groupby('Bucket').agg({'Buy_Vol': 'sum', 'Sell_Vol': 'sum'})
+        imbalance = np.abs(bucket_stats['Buy_Vol'] - bucket_stats['Sell_Vol'])
         
-        return float(buckets.mean() / bucket_size)
+        vpin = imbalance.sum() / (n_buckets * bucket_size)
+        return float(vpin)
 
     def calculate_kyles_lambda(self, returns: pd.Series, volume: pd.Series) -> float:
         """
